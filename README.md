@@ -67,7 +67,8 @@ Per run data output vs. starting active pore scatter plot with run type annotate
 Example usage (```python CARDlongread_extract_summary_statistics.py -h```):
 
 ```
-usage: CARDlongread_extract_summary_statistics.py [-h] [-input INPUT_FILE] [-output OUTPUT_FILE] [-plot_title PLOT_TITLE] [--plot_cutoff | --no-plot_cutoff] [-run_cutoff RUN_CUTOFF]
+usage: CARDlongread_extract_summary_statistics.py [-h] [-input INPUT_FILE] [-output OUTPUT_FILE] [-platform_qc PLATFORM_QC] [-plot_title PLOT_TITLE]
+                                                  [--plot_cutoff | --no-plot_cutoff] [-run_cutoff RUN_CUTOFF]
 
 This program gets summary statistics from long read sequencing report data.
 
@@ -75,6 +76,8 @@ optional arguments:
   -h, --help            show this help message and exit
   -input INPUT_FILE     Input tab-delimited tsv file containing features extracted from long read sequencing reports.
   -output OUTPUT_FILE   Output long read sequencing summary statistics XLSX
+  -platform_qc PLATFORM_QC
+                        Input platform QC table to calculate active pore dropoff upon sequencing (optional)
   -plot_title PLOT_TITLE
                         Title for each plot in output XLSX (optional)
   --plot_cutoff, --no-plot_cutoff
