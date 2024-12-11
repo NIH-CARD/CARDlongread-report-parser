@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import argparse
 import dataclasses
+from dateutil.parser import isoparse
 # get fields from json
 def get_fields_from_json(input_json_dict):
     # define fields_from_json class
@@ -25,12 +26,15 @@ def get_fields_from_json(input_json_dict):
         modal_q_score_failed : float = 0
         starting_active_pores : float = 0
         second_active_pore_count : float = 0
+        timestamp : float = 0
     # get elements from json-based dictionary
     fields_from_json.experiment_name = input_json_dict['protocol_run_info']['user_info']['protocol_group_id']
     fields_from_json.sample_name = input_json_dict['protocol_run_info']['user_info']['sample_id']
     fields_from_json.run_date = input_json_dict['protocol_run_info']['start_time'][0:10]
     fields_from_json.prom_id = input_json_dict['host']['serial']
     fields_from_json.flow_cell_id = input_json_dict['protocol_run_info']['flow_cell']['flow_cell_id']
+    # convert timestamp for data_read_start_time (corresponds to starting active pores) from ISO 8601 to Unix timestamp format
+    fields_from_json.timestamp = round(isoparse(input_json_dict['acquisitions'][3]['acquisition_run_info']['data_read_start_time']).timestamp())
     # be sure to handle exception of no data output
     # convert data output from bases to Gb with three decimal places
     # use total estimated bases as output
@@ -74,16 +78,20 @@ def get_fields_from_json(input_json_dict):
         fields_from_json.modal_q_score_passed = 'NA'
         fields_from_json.modal_q_score_failed = 'NA'
     # get starting active pores if in json file
-    if len(input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results']) >= 1:
-        # get first (index 0) mux scan results
-        fields_from_json.starting_active_pores = input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][0]['counts']['single_pore'] + input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][0]['counts']['reserved_pore']
+    if 'mux_scan_results' in input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']:
+        if (len(input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results']) >= 1) and ('counts' in input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][0]):
+            # get first (index 0) mux scan results
+            fields_from_json.starting_active_pores = input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][0]['counts']['single_pore'] + input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][0]['counts']['reserved_pore']
+        else:
+            fields_from_json.starting_active_pores = 'NA'
+            # get second active pore count if in json file
+        if (len(input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results']) >= 2) and ('counts' in input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][1]):
+            # get first (index 0) mux scan results
+            fields_from_json.second_active_pore_count = input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][1]['counts']['single_pore'] + input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][1]['counts']['reserved_pore']
+        else:
+            fields_from_json.second_active_pore_count = 'NA'
     else:
         fields_from_json.starting_active_pores = 'NA'
-    # get second active pore count if in json file
-    if len(input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results']) >= 2:
-        # get first (index 0) mux scan results
-        fields_from_json.second_active_pore_count = input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][1]['counts']['single_pore'] + input_json_dict['acquisitions'][3]['acquisition_run_info']['bream_info']['mux_scan_results'][1]['counts']['reserved_pore']
-    else:
         fields_from_json.second_active_pore_count = 'NA'
     return fields_from_json
 # load json file list
@@ -105,7 +113,7 @@ else:
 # set indices
 sequencing_report_df_indices = [np.arange(0,len(files))]
 # set column names
-sequencing_report_column_names = ['Experiment Name','Sample Name','Run Date','PROM ID','Flow Cell ID','Data output (Gb)','N50 (kb)','MinKNOW Version', 'Passed Modal Q Score', 'Failed Modal Q Score', 'Starting Active Pores', "Second Pore Count"]
+sequencing_report_column_names = ['Experiment Name','Sample Name','Run Date','PROM ID','Flow Cell ID','Data output (Gb)','N50 (kb)','MinKNOW Version', 'Passed Modal Q Score', 'Failed Modal Q Score', 'Starting Active Pores', 'Second Pore Count', 'Start Run Timestamp']
 # initialize data frame with said column names and filenames as indexes
 sequencing_report_df = pd.DataFrame(index=sequencing_report_df_indices,columns=sequencing_report_column_names)
 # main loop to process files
@@ -119,7 +127,7 @@ for idx, x in enumerate(files):
         data = json.loads(f.read())
         # get important information
         current_data_fields = get_fields_from_json(data)
-        sequencing_report_df.loc[idx] = [current_data_fields.experiment_name,current_data_fields.sample_name,current_data_fields.run_date,current_data_fields.prom_id,current_data_fields.flow_cell_id,current_data_fields.data_output,current_data_fields.n50,current_data_fields.minknow_version,current_data_fields.modal_q_score_passed,current_data_fields.modal_q_score_failed,current_data_fields.starting_active_pores,current_data_fields.second_active_pore_count]
+        sequencing_report_df.loc[idx] = [current_data_fields.experiment_name,current_data_fields.sample_name,current_data_fields.run_date,current_data_fields.prom_id,current_data_fields.flow_cell_id,current_data_fields.data_output,current_data_fields.n50,current_data_fields.minknow_version,current_data_fields.modal_q_score_passed,current_data_fields.modal_q_score_failed,current_data_fields.starting_active_pores,current_data_fields.second_active_pore_count,current_data_fields.timestamp]
     except ValueError as e:
         print(e)
         continue
