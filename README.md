@@ -101,7 +101,7 @@ cd CARDlongread-report-parser
 # Execute with file list of json reports (one per line):
 python3 CARDlongread_extract_from_json.py --filelist example_json_reports.txt --output example_output.tsv
 
-# Alternatively, execute on all html files within a directory
+# Alternatively, execute on all json files within a directory
 # (does not descend into subdirectories)
 python3 CARDlongread_extract_from_json.py --json_dir /data/CARDPB/data/PPMI/SEQ_REPORTS/example_json_reports/ --output example_output.tsv
 
