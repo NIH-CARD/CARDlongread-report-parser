@@ -123,3 +123,8 @@ Per run data output vs. starting active pore scatter plot with run type annotate
 <br></br>
 <img width="720" alt="image" src="https://github.com/user-attachments/assets/6cf2041b-429f-45ed-b759-658480fdc943">
 <br></br>
+<img width="642" alt="image" src="https://github.com/user-attachments/assets/2eb5196d-7cf0-4abb-86b9-760a457362a4" />
+<br></br>
+<img width="642" alt="image" src="https://github.com/user-attachments/assets/1378ce87-5f45-45a8-8de3-325935a3ad96" />
+<br></br>
+
