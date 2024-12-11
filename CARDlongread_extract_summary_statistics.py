@@ -219,15 +219,18 @@ def platform_qc_starting_active_pore_diff(data,platform_qc):
     platform_qc['Flow Cell ID'] = platform_qc['flow_cell_id']
     # join platform_qc and data tables on Flow Cell ID
     data_platform_qc_join = data.join(platform_qc.set_index("Flow Cell ID"),on="Flow Cell ID")
+    # remove those where flow_cell_id is NaN
+    data_platform_qc_join_cleaned = data_platform_qc_join.dropna(subset='flow_cell_id')
+    # exclude NaN rows after join
     # find unique run timestamps
-    unique_run_timestamps = np.unique(data_platform_qc_join["Start Run Timestamp"])
+    unique_run_timestamps = np.unique(data_platform_qc_join_cleaned["Start Run Timestamp"])
     # initialize new data frame as long as unique runs based on unique run timestamps
     # remove {'Start Run Timestamp' : unique_run_timestamps} from arguments below
-    data_with_platform_qc_and_diff = pd.DataFrame(columns=data_platform_qc_join.columns.tolist() + ['Pore Difference','Time Difference'])
+    data_with_platform_qc_and_diff = pd.DataFrame(columns=data_platform_qc_join_cleaned.columns.tolist() + ['Pore Difference','Time Difference'])
     # find matching rows in input platform qc table
     for idx, i in enumerate(unique_run_timestamps):
         # pick all platform qc results per run timestamp
-        per_unique_run_df=data_platform_qc_join[data_platform_qc_join["Start Run Timestamp"] == i]
+        per_unique_run_df=data_platform_qc_join_cleaned[data_platform_qc_join_cleaned["Start Run Timestamp"] == i]
         # calculate difference between platform qc and starting active pores
         per_unique_run_df.loc[:,['Pore Difference']]=abs(per_unique_run_df['total_pore_count']-per_unique_run_df['Starting Active Pores'])
         # calculate difference between platfrom qc and starting active pore timestamps
@@ -238,6 +241,8 @@ def platform_qc_starting_active_pore_diff(data,platform_qc):
         # data_with_platform_qc_and_diff.loc[idx,:]=per_unique_run_df[per_unique_run_df['Time Difference']==min(per_unique_run_df['Time Difference'])].iloc[0,:]
         # append deprecated in pandas 2.0
         # data_with_platform_qc_and_diff = data_with_platform_qc_and_diff.append(per_unique_run_df[per_unique_run_df['Time Difference']==min(per_unique_run_df['Time Difference'])].iloc[0,:])
+        # below for debugging
+        # print(per_unique_run_df)
         data_with_platform_qc_and_diff.loc[idx] = per_unique_run_df[per_unique_run_df['Time Difference']==min(per_unique_run_df['Time Difference'])].iloc[0,:]
     # convert starting active pore column to numeric
     # data_with_platform_qc_and_diff.loc[:,['Starting Active Pores']]=pd.to_numeric(data_with_platform_qc_and_diff['Starting Active Pores'])
