@@ -5,6 +5,7 @@ The NIA CARD Long-Read Sequencing group sequences some 30-50 human genomes per w
 ## Dependencies
 
 The Python scripts were tested and developed with the following dependency versions:  
+
 Python 3.10.8  
 numpy 1.26.4  
 pandas 2.0.3  
