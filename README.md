@@ -13,7 +13,14 @@ seaborn 0.12.2
 matplotlib 3.7.2  
 json 2.0.9  
 argparse 1.1  
-dateutil 2.8.2   
+dateutil 2.8.2  
+openpyxl 3.1.2  
+xlsxwriter 3.1.2  
+datetime  
+statistics  
+dataclasses  
+glob  
+io  
 
 ## Usage
 
