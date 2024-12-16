@@ -17,6 +17,7 @@ dateutil 2.8.2
 openpyxl 3.1.2  
 xlsxwriter 3.1.2  
 datetime  
+dateutil  
 statistics  
 dataclasses  
 glob  
