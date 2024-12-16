@@ -2,6 +2,16 @@
 
 The NIA CARD Long-Read Sequencing group sequences some 30-50 human genomes per week from brain and blood genomic DNA. Given these samples both often belong to larger cohorts (more than 30-50 samples), batch to batch variation is inevitable, and Oxford Nanopore Technologies has steadily modified sequencing library chemistry, flow cells, instrument software, and basecalling models, regular sequencing quality control is critical to examine how our sequencing efforts change over time. The included Python scripts automate the process of collecting key sequencing statistics from weekly and cohort-wide sequencing runs and generate QC analytics as an Excel spreadsheet. They take run output JSON files as input and pull sequencing statistics from exact locations in each JSON hierarchical data structure. The scripts have been written to handle JSON files from MinKNOW version 24.02.19 and earlier. Recent updates make it possible to incorporate platform QC flow cell checks from before sequencing into the QC visualization dashboard as well. Please report any bugs in the Issues tab to further improve the parser.
 
+## Dependencies
+
+The Python scripts were tested and developed with the following dependency versions:
+Python 3.10.8
+numpy 1.26.4
+pandas 2.0.3
+json 2.0.9
+argparse 1.1
+dateutil 2.8.2 
+
 ## Usage
 
 ```CARDlongread_extract_from_json.py``` takes a list of Oxford Nanopore sequencing report JSON files as inputs (or a directory containing all JSON files to analyze) and returns a table with the following fields per JSON:
