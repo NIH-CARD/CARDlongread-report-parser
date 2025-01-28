@@ -508,6 +508,8 @@ make_scatterplot_worksheet(longread_extract,workbook,"Active pores vs. read N50"
 # make_read_n50_data_output_scatterplot(longread_extract,workbook,'Read N50 vs. data output',results.plot_title)
 # redo with make_scatterplot_worksheet
 make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. data output",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=True,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
+# add read N50 vs. data output without regression line
+make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. data no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)     
 # log10 transform platform qc active pores, starting active pores, and pore differences 
 if results.platform_qc is not None:
     longread_extract_with_platform_qc_and_diff['log_platform_qc_active_pores']=np.log10(pd.to_numeric(longread_extract_with_platform_qc_and_diff['Platform QC active pores']))
