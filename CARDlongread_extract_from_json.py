@@ -23,6 +23,7 @@ def get_fields_from_json(input_json_dict):
         minknow_version : ''
         iso_timestamp : ''
         data_output : float = 0
+        read_count : float = 0
         n50 : float = 0
         modal_q_score_passed : float = 0
         modal_q_score_failed : float = 0
@@ -47,6 +48,11 @@ def get_fields_from_json(input_json_dict):
         fields_from_json.data_output = round(pd.to_numeric(input_json_dict['acquisitions'][3]['acquisition_run_info']['yield_summary']['estimated_selected_bases'])/1e9, 3)
     else:
         fields_from_json.data_output = 0
+    # get total read count from json dictionary
+    if 'read_count' in input_json_dict['acquisitions'][3]['acquisition_run_info']['yield_summary']:
+        fields_from_json.read_count = pd.to_numeric(input_json_dict['acquisitions'][3]['acquisition_run_info']['yield_summary']['read_count'])
+    else:
+        fields_from_json.read_count = 0
     # get n50 in kb to two decimal places for estimated bases, not basecalled bases
     if 'n50' in input_json_dict['acquisitions'][3]['read_length_histogram'][3]['plot']['histogram_data'][0]:
         fields_from_json.n50 = round(pd.to_numeric(input_json_dict['acquisitions'][3]['read_length_histogram'][3]['plot']['histogram_data'][0]['n50'])/1e3, 2)
@@ -118,7 +124,7 @@ else:
 # set indices
 sequencing_report_df_indices = [np.arange(0,len(files))]
 # set column names
-sequencing_report_column_names = ['Experiment Name','Sample Name','Run Date','PROM ID','Flow Cell Position','Flow Cell ID','Data output (Gb)','N50 (kb)','MinKNOW Version', 'Passed Modal Q Score', 'Failed Modal Q Score', 'Starting Active Pores', 'Second Pore Count', 'Start Run ISO Timestamp', 'Start Run Timestamp']
+sequencing_report_column_names = ['Experiment Name','Sample Name','Run Date','PROM ID','Flow Cell Position','Flow Cell ID','Data output (Gb)','Read Count','N50 (kb)','MinKNOW Version', 'Passed Modal Q Score', 'Failed Modal Q Score', 'Starting Active Pores', 'Second Pore Count', 'Start Run ISO Timestamp', 'Start Run Timestamp']
 # initialize data frame with said column names and filenames as indexes
 sequencing_report_df = pd.DataFrame(index=sequencing_report_df_indices,columns=sequencing_report_column_names)
 # main loop to process files
@@ -132,7 +138,7 @@ for idx, x in enumerate(files):
         data = json.loads(f.read())
         # get important information
         current_data_fields = get_fields_from_json(data)
-        sequencing_report_df.loc[idx] = [current_data_fields.experiment_name,current_data_fields.sample_name,current_data_fields.run_date,current_data_fields.prom_id,current_data_fields.flow_cell_position,current_data_fields.flow_cell_id,current_data_fields.data_output,current_data_fields.n50,current_data_fields.minknow_version,current_data_fields.modal_q_score_passed,current_data_fields.modal_q_score_failed,current_data_fields.starting_active_pores,current_data_fields.second_active_pore_count,current_data_fields.iso_timestamp,current_data_fields.timestamp]
+        sequencing_report_df.loc[idx] = [current_data_fields.experiment_name,current_data_fields.sample_name,current_data_fields.run_date,current_data_fields.prom_id,current_data_fields.flow_cell_position,current_data_fields.flow_cell_id,current_data_fields.data_output,current_data_fields.read_count,current_data_fields.n50,current_data_fields.minknow_version,current_data_fields.modal_q_score_passed,current_data_fields.modal_q_score_failed,current_data_fields.starting_active_pores,current_data_fields.second_active_pore_count,current_data_fields.iso_timestamp,current_data_fields.timestamp]
     except ValueError as e:
         print(e)
         continue
