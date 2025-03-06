@@ -35,7 +35,13 @@ def get_fields_from_json(input_json_dict):
     fields_from_json.sample_name = input_json_dict['protocol_run_info']['user_info']['sample_id']
     fields_from_json.run_date = input_json_dict['protocol_run_info']['start_time'][0:10]
     fields_from_json.prom_id = input_json_dict['host']['serial']
-    fields_from_json.flow_cell_id = input_json_dict['protocol_run_info']['flow_cell']['flow_cell_id']
+    if 'flow_cell_id' in input_json_dict['protocol_run_info']['flow_cell']:
+        fields_from_json.flow_cell_id = input_json_dict['protocol_run_info']['flow_cell']['flow_cell_id']
+    else:
+        if 'user_specified_flow_cell_id' in input_json_dict['protocol_run_info']['flow_cell']:
+            fields_from_json.flow_cell_id = input_json_dict['protocol_run_info']['flow_cell']['user_specified_flow_cell_id']
+        else:
+            fields_from_json.flow_cell_id = 'NA'
     fields_from_json.flow_cell_position = input_json_dict['protocol_run_info']['device']['device_id']
     # get timestamp of run start in ISO 8601 format
     fields_from_json.iso_timestamp = input_json_dict['acquisitions'][3]['acquisition_run_info']['data_read_start_time']
