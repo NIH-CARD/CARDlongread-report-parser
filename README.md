@@ -27,16 +27,16 @@ io
 
 ```CARDlongread_extract_from_json.py``` takes a list of Oxford Nanopore sequencing report JSON files as inputs (or a directory containing all JSON files to analyze) and returns a table with the following fields per JSON:
 
-Experiment Name, Sample Name, Run Date, PROM ID, Flow Cell Position, Flow Cell ID, Data output (Gb), N50 (kb), MinKNOW Version, Passed Modal Q Score, Failed Modal Q Score, Starting Active Pores, Second Pore Count, Start Run ISO Timestamp, Start Run Timestamp
+Experiment Name, Sample Name, Run Date, PROM ID, Flow Cell Position, Flow Cell ID, Flow Cell Product Code, Data output (Gb), N50 (kb), MinKNOW Version, Passed Modal Q Score, Failed Modal Q Score, Starting Active Pores, Second Pore Count, Start Run ISO Timestamp, Start Run Timestamp
 
 Below is sample output from the script:
 ```
-Experiment Name	Sample Name	Run Date	PROM ID	Flow Cell Position	Flow Cell ID	Data output (Gb)	Read Count	N50 (kb)	MinKNOW Version	Passed Modal Q Score	Failed Modal Q Score	Starting Active Pores	Second Pore Count	Start Run ISO Timestamp	Start Run Timestamp
-Chile_404	Chile_404	2024-05-14	PC24B302	2D	PAW33034	141.083	7344630	23.39	24.02.10	NA	NA	7644	7295	2024-05-14T21:23:35.883780864Z	1715721816
-Chile_406	Chile_406	2024-05-01	PC24B302	2E	PAW73369	131.699	7426455	22.79	24.02.10	NA	NA	7431	7118	2024-05-01T19:49:27.062103580Z	1714592967
-Chile_509	Chile_509	2024-05-14	PC24B302	2F	PAW61512	117.861	7947292	17.12	24.02.10	NA	NA	7604	7028	2024-05-14T21:28:27.860263815Z	1715722108
-Chile_511	Chile_511	2024-05-08	PC24B302	2D	PAW71368	133.097	7547824	20.69	24.02.10	NA	NA	7370	6972	2024-05-08T20:46:57.642743302Z	1715201218
-Chile_516	Chile_516	2024-05-01	PC24B302	2D	PAW71977	129.544	6625368	23.63	24.02.10	NA	NA	7837	7424	2024-05-01T19:47:57.769730497Z	1714592878
+Experiment Name	Sample Name	Run Date	PROM ID	Flow Cell Position	Flow Cell ID	Flow Cell Product Code	Data output (Gb)	Read Count	N50 (kb)	MinKNOW Version	Passed Modal Q Score	Failed Modal Q Score	Starting Active Pores	Second Pore Count	Start Run ISO Timestamp	Start Run Timestamp
+Chile_404	Chile_404	2024-05-14	PC24B302	2D	PAW33034	FLO-PRO114M	141.083	7344630	23.39	24.02.10	NA	NA	7644	7295	2024-05-14T21:23:35.883780864Z	1715721816
+Chile_406	Chile_406	2024-05-01	PC24B302	2E	PAW73369	FLO-PRO114M	131.699	7426455	22.79	24.02.10	NA	NA	7431	7118	2024-05-01T19:49:27.062103580Z	1714592967
+Chile_509	Chile_509	2024-05-14	PC24B302	2F	PAW61512	FLO-PRO114M	117.861	7947292	17.12	24.02.10	NA	NA	7604	7028	2024-05-14T21:28:27.860263815Z	1715722108
+Chile_511	Chile_511	2024-05-08	PC24B302	2D	PAW71368	FLO-PRO114M	133.097	7547824	20.69	24.02.10	NA	NA	7370	6972	2024-05-08T20:46:57.642743302Z	1715201218
+Chile_516	Chile_516	2024-05-01	PC24B302	2D	PAW71977	FLO-PRO114M	129.544	6625368	23.63	24.02.10	NA	NA	7837	7424	2024-05-01T19:47:57.769730497Z	1714592878
 ```
 
 The file list should contain paths to each report on each line, like so:
