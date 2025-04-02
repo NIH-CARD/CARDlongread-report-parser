@@ -317,7 +317,11 @@ def make_scatterplot_worksheet(data,workbook,worksheet_name,title=None,x_cutoffs
 parser = argparse.ArgumentParser(description='This program gets summary statistics from long read sequencing report data.')
 
 # get input and output arguments
-parser.add_argument('-input', action="store", dest="input_file", help="Input tab-delimited tsv file containing features extracted from long read sequencing reports.")
+# allow multiple inputs
+parser.add_argument('-input', action="store", dest="input_file", nargs="+", help="Input tab-delimited tsv file(s) containing features extracted from long read sequencing reports.")
+# if multiple inputs, require input names
+parser.add_argument('-names', action="store", dest="names", nargs="*", help="Names corresponding to input tsv file(s); required if more than one tsv provided.")
+# single output xlsx
 parser.add_argument('-output', action="store", dest="output_file", help="Output long read sequencing summary statistics XLSX")
 parser.add_argument('-platform_qc', action="store",default=None, dest="platform_qc", help="Input platform QC table to calculate active pore dropoff upon sequencing (optional)")
 parser.add_argument('-plot_title', action="store", default=None, dest="plot_title", help="Title for each plot in output XLSX (optional)")
@@ -332,13 +336,33 @@ results = parser.parse_args()
 # throw error if no input file provided
 if results.input_file is None:
 	quit('ERROR: No input file (-input) provided!')
+    
+# throw error if no names provided if multiple input files provided
+if len(results.input_file)>1:
+    if len(results.names)<=1:
+        quit('ERROR: Multiple input files provided but not multiple names (-names).')
         
 # set default output filename
 if results.output_file is None:
     results.output_file='output_summary_statistics.xlsx'
 
 # read tab delimited output into pandas data frame
-longread_extract_initial=pd.read_csv(results.input_file,sep='\t')
+# case if just one input file provided
+if len(results.input_file)==1:
+    longread_extract_initial=pd.read_csv(results.input_file[0],sep='\t')
+    grouped=False
+# what if multiple input files provided
+elif len(results.input_file)>1:
+    # store input tables in list as long input filename set
+    longread_extract_initial_list=[0] * len(results.input_file)
+    for idx, i in enumerate(results.input_file): 
+        longread_extract_initial_list[idx]=pd.read_csv(i,sep='\t')
+        # add group name to each table in list
+        longread_extract_initial_list[idx]['Group']=results.names[idx]
+    # combine groups into single concatenated data table
+    longread_extract_initial=pd.concat(longread_extract_initial_list[:],ignore_index=True)
+    # set grouped variable
+    grouped=True
 
 # read csv delimited platform qc file into pandas data frame if provided
 if results.platform_qc is not None:
@@ -383,6 +407,8 @@ longread_extract_flow_cells_per_experiment_dist = get_flow_cells_per_experiment_
 read_N50_summary_stats = get_summary_statistics(longread_extract['N50 (kb)'])
 # sequence output
 sequence_output_summary_stats = get_summary_statistics(longread_extract['Data output (Gb)'])
+# read count per run
+read_count_summary_stats = get_summary_statistics(longread_extract['Read Count'])
 # starting active pores per run
 starting_active_pores_summary_stats = get_summary_statistics(longread_extract['Starting Active Pores'])
 # platform QC active pores per run if possible
@@ -398,18 +424,18 @@ output_per_flow_cell_summary_stats = get_summary_statistics(longread_extract_out
 output_per_experiment_summary_stats = get_summary_statistics(longread_extract_flow_cells_and_output_per_experiment['Total output (Gb)'])
 
 # combine summary stats into one list
-combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,starting_active_pores_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
+combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,read_count_summary_stats,starting_active_pores_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
 
 # make data frame from combined_summary_stats
-combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Starting active pores','Flow cells per experiment','Flow cell output (Gb)', 'Total experiment output (Gb)']
+combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Run read count','Starting active pores','Flow cells per experiment','Flow cell output (Gb)', 'Total experiment output (Gb)']
 combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
 
 # include platform QC active pores/pore difference information where applicable
 if results.platform_qc is not None:
     # combine summary stats into one list
-    combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,starting_active_pores_summary_stats,platform_qc_summary_stats,pore_difference_qc_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
+    combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,read_count_summary_stats,starting_active_pores_summary_stats,platform_qc_summary_stats,pore_difference_qc_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
     # make data frame from combined_summary_stats
-    combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Starting active pores','Platform QC active pores','Pore difference','Flow cells per experiment','Flow cell output (Gb)','Total experiment output (Gb)']
+    combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Run read count','Starting active pores','Platform QC active pores','Pore difference','Flow cells per experiment','Flow cell output (Gb)','Total experiment output (Gb)']
     combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
 # minknow version distribution
 longread_extract_minknow_version_dist = get_minknow_version_dist(longread_extract['MinKNOW Version'])
@@ -465,6 +491,7 @@ if results.plot_cutoff is True:
     # show topups in first three plots
     make_violinswarmplot_worksheet(longread_extract,"N50 (kb)",workbook,'Read N50 plot',None,None,results.plot_title,True)
     make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",workbook,'Run data output plot',None,90,results.plot_title,True)
+    make_violinswarmplot_worksheet(longread_extract,"Read Count",workbook,'Run read count plot',None,None,results.plot_title,True)
     make_violinswarmplot_worksheet(longread_extract,"Starting Active Pores",workbook,'Starting active pores plot',"Starting active pores",6500,results.plot_title,True)
     # no topups in next three plots
     make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Flow Cells",workbook,'Flow cells per experiment plot',"Flow cells",None,results.plot_title)
@@ -484,6 +511,7 @@ else:
     # show topups in first three plots
     make_violinswarmplot_worksheet(longread_extract,"N50 (kb)",workbook,'Read N50 plot',None,None,results.plot_title,True)
     make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",workbook,'Run data output plot',None,None,results.plot_title,True)
+    make_violinswarmplot_worksheet(longread_extract,"Read Count",workbook,'Run read count plot',None,None,results.plot_title,True)
     make_violinswarmplot_worksheet(longread_extract,"Starting Active Pores",workbook,'Starting active pores plot',"Starting active pores",None,results.plot_title,True)
     # no topups in next three plots
     make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Flow Cells",workbook,'Flow cells per experiment plot',"Flow cells",None,results.plot_title)
@@ -501,6 +529,9 @@ else:
 # make_active_pore_data_output_scatterplot(longread_extract,workbook,'Active pores vs. data output',results.plot_title)
 # redo with make_scatterplot_worksheet
 make_scatterplot_worksheet(longread_extract,workbook,"Active pores vs. data output",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
+# do also with read count
+# cutoffs not known yet for read count
+make_scatterplot_worksheet(longread_extract,workbook,"Active pores vs. read count",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Read Count',prop_point_size=False,size_column=None)            
 # make_active_pore_flow_cell_output_scatterplot(longread_extract_output_per_flow_cell,workbook,'Active pores vs. flow cell output',results.plot_title)
 # make_active_pore_read_n50_scatterplot(longread_extract,workbook,'Active pores vs. read N50',results.plot_title)
 # redo with make_scatterplot_worksheet
@@ -510,6 +541,11 @@ make_scatterplot_worksheet(longread_extract,workbook,"Active pores vs. read N50"
 make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. data output",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=True,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
 # add read N50 vs. data output without regression line
 make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. data no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)     
+# do also with read count
+# redo with make_scatterplot_worksheet
+make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. read count",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=True,x_variable='N50 (kb)',y_variable='Read Count',prop_point_size=False,size_column=None)            
+# add read N50 vs. data output without regression line
+make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. count no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Read Count',prop_point_size=False,size_column=None)     
 # log10 transform platform qc active pores, starting active pores, and pore differences 
 if results.platform_qc is not None:
     longread_extract_with_platform_qc_and_diff['log_platform_qc_active_pores']=np.log10(pd.to_numeric(longread_extract_with_platform_qc_and_diff['Platform QC active pores']))
