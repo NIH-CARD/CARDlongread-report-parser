@@ -72,24 +72,25 @@ def get_fields_from_json(input_json_dict):
         fields_from_json.read_count = 0
     # get n50 in kb to two decimal places for estimated bases, not basecalled bases
     # add conditional for MinKNOW 24.11.11 (acquisitions[1] instead of acquisitions[3] )
-    # For MinKNOW versions >24.11.11
-    read_length_histogram=input_json_dict['acquisitions'][3]['read_length_histogram'][1]
+    # probably can just test on software version in future...
+    # For MinKNOW versions <24.11.11
+    read_length_histogram=input_json_dict['acquisitions'][3]['read_length_histogram'][3]
     # first check that critical keys exist
-    MinKNOW_241111_N50_depth_test=('read_length_type' in read_length_histogram) and ('bucket_value_type' in read_length_histogram) and ('n50' in read_length_histogram['plot']['histogram_data'][0])
+    MinKNOW_before_241111_N50_depth_test=('read_length_type' in read_length_histogram) and ('bucket_value_type' in read_length_histogram) and ('n50' in read_length_histogram['plot']['histogram_data'][0])
     # test for existence
-    if MinKNOW_241111_N50_depth_test:
+    if MinKNOW_before_241111_N50_depth_test is True:
         # if they exist, make sure critical keys have expected content (Estimated Bases, Read Lengths)
-        MinKNOW_241111_N50_content_test=(read_length_histogram['read_length_type'] == "EstimatedBases") and (read_length_histogram['bucket_value_type'] == "ReadLengths")
+        MinKNOW_before_241111_N50_content_test=(read_length_histogram['read_length_type'] == "EstimatedBases") and (read_length_histogram['bucket_value_type'] == "ReadLengths")
         # test content
-        if MinKNOW_241111_N50_content_test:
+        if MinKNOW_before_241111_N50_content_test is True:
             fields_from_json.n50 = round(pd.to_numeric(read_length_histogram['plot']['histogram_data'][0]['n50'])/1e3, 2)
         else:
             fields_from_json.n50 = 0
-    # For MinKNOW versions <24.11.11
+    # For MinKNOW versions >24.11.11
     else: 
-        read_length_histogram=input_json_dict['acquisitions'][3]['read_length_histogram'][3]
-        MinKNOW_before_241111_N50_content_test=(read_length_histogram['read_length_type'] == "EstimatedBases") and (read_length_histogram['bucket_value_type'] == "ReadLengths") and ('n50' in read_length_histogram['plot']['histogram_data'][0])
-        if MinKNOW_before_241111_N50_content_test:
+        read_length_histogram=input_json_dict['acquisitions'][3]['read_length_histogram'][1]
+        MinKNOW_241111_after_N50_content_test=(read_length_histogram['read_length_type'] == "EstimatedBases") and (read_length_histogram['bucket_value_type'] == "ReadLengths") and ('n50' in read_length_histogram['plot']['histogram_data'][0])
+        if MinKNOW_241111_after_N50_content_test is True:
             fields_from_json.n50 = round(pd.to_numeric(read_length_histogram['plot']['histogram_data'][0]['n50'])/1e3, 2)
         # if not found altogether
         else:
@@ -101,6 +102,7 @@ def get_fields_from_json(input_json_dict):
     else:
         # old software_versions path in 2023
         fields_from_json.minknow_version = input_json_dict['software_versions']['distribution_version']
+    # base n50 value on software version
     # get modal q score for passed and failed reads if found in json file
     if 'qscore_histograms' in input_json_dict['acquisitions'][3]:
         # test if passed reads present as element
