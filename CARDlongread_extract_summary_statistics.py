@@ -201,7 +201,7 @@ def make_violinswarmplot_worksheet(data,input_variable,workbook,worksheet_name,x
     # put figure in variable to prep for saving into buffer
     # fig = swarmplot.get_figure()
     # save figure as 200 dpi PNG into buffer
-    fig.savefig(imgdata, format='png', dpi=200)
+    fig.savefig(imgdata, format='png', dpi=200, bbox_inches='tight')
     # close figure
     fig.clf()
     # make openpyxl image from raw data
