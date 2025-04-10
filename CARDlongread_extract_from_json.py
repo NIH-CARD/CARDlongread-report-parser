@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # long read sequencing report JSON parser
-# output fields are Experiment Name, Sample Name, Run Date, PROM ID, Flow Cell ID, Data output (Gb), N50 (kb), MinKNOW Version
+# output fields are Experiment Name, Sample Name, Run Date, PROM ID, Flow Cell Position, Flow Cell ID, Flow Cell Product Code, Data output (Gb), Read Count (M), N50 (kb), MinKNOW Version, Passed Modal Q Score, Failed Modal Q Score, Starting Active Pores, Second Pore Count, Start Run ISO Timestamp, Start Run Timestamp
 # look for Q score in the future and possibly also total reads
 import glob
 import json
@@ -67,7 +67,7 @@ def get_fields_from_json(input_json_dict):
         fields_from_json.data_output = 0
     # get total read count from json dictionary
     if 'read_count' in input_json_dict['acquisitions'][3]['acquisition_run_info']['yield_summary']:
-        fields_from_json.read_count = pd.to_numeric(input_json_dict['acquisitions'][3]['acquisition_run_info']['yield_summary']['read_count'])
+        fields_from_json.read_count = round(pd.to_numeric(input_json_dict['acquisitions'][3]['acquisition_run_info']['yield_summary']['read_count'])/1e6, 3)
     else:
         fields_from_json.read_count = 0
     # get n50 in kb to two decimal places for estimated bases, not basecalled bases
@@ -162,7 +162,7 @@ else:
 # set indices
 sequencing_report_df_indices = [np.arange(0,len(files))]
 # set column names
-sequencing_report_column_names = ['Experiment Name','Sample Name','Run Date','PROM ID','Flow Cell Position','Flow Cell ID','Flow Cell Product Code','Data output (Gb)','Read Count','N50 (kb)','MinKNOW Version', 'Passed Modal Q Score', 'Failed Modal Q Score', 'Starting Active Pores', 'Second Pore Count', 'Start Run ISO Timestamp', 'Start Run Timestamp']
+sequencing_report_column_names = ['Experiment Name','Sample Name','Run Date','PROM ID','Flow Cell Position','Flow Cell ID','Flow Cell Product Code','Data output (Gb)','Read Count (M)','N50 (kb)','MinKNOW Version', 'Passed Modal Q Score', 'Failed Modal Q Score', 'Starting Active Pores', 'Second Pore Count', 'Start Run ISO Timestamp', 'Start Run Timestamp']
 # initialize data frame with said column names and filenames as indexes
 sequencing_report_df = pd.DataFrame(index=sequencing_report_df_indices,columns=sequencing_report_column_names)
 # main loop to process files
