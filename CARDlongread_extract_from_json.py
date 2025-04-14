@@ -74,7 +74,11 @@ def get_fields_from_json(input_json_dict):
     # add conditional for MinKNOW 24.11.11 (acquisitions[1] instead of acquisitions[3] )
     # probably can just test on software version in future...
     # For MinKNOW versions <24.11.11
-    read_length_histogram=input_json_dict['acquisitions'][3]['read_length_histogram'][3]
+    # first check if JSON dict has enough read length histogram entries
+    if len(input_json_dict['acquisitions'][3]['read_length_histogram'])>=4:
+        read_length_histogram=input_json_dict['acquisitions'][3]['read_length_histogram'][3]
+    else:
+        read_length_histogram=input_json_dict['acquisitions'][3]['read_length_histogram'][1]
     # first check that critical keys exist
     MinKNOW_before_241111_N50_depth_test=('read_length_type' in read_length_histogram) and ('bucket_value_type' in read_length_histogram) and ('n50' in read_length_histogram['plot']['histogram_data'][0])
     # test for existence
