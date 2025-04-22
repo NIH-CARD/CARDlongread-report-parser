@@ -80,11 +80,11 @@ def get_fields_from_json(input_json_dict):
     else:
         read_length_histogram=input_json_dict['acquisitions'][3]['read_length_histogram'][1]
     # first check that critical keys exist
-    MinKNOW_before_241111_N50_depth_test=('read_length_type' in read_length_histogram) and ('bucket_value_type' in read_length_histogram) and ('n50' in read_length_histogram['plot']['histogram_data'][0])
+    MinKNOW_before_241111_N50_depth_test=('read_length_type' in read_length_histogram) and ('bucket_value_type' in read_length_histogram) # and ('n50' in read_length_histogram['plot']['histogram_data'][0])
     # test for existence
     if MinKNOW_before_241111_N50_depth_test is True:
         # if they exist, make sure critical keys have expected content (Estimated Bases, Read Lengths)
-        MinKNOW_before_241111_N50_content_test=(read_length_histogram['read_length_type'] == "EstimatedBases") and (read_length_histogram['bucket_value_type'] == "ReadLengths")
+        MinKNOW_before_241111_N50_content_test=(read_length_histogram['read_length_type'] == "EstimatedBases") and (read_length_histogram['bucket_value_type'] == "ReadLengths") and ('n50' in read_length_histogram['plot']['histogram_data'][0])
         # test content
         if MinKNOW_before_241111_N50_content_test is True:
             fields_from_json.n50 = round(pd.to_numeric(read_length_histogram['plot']['histogram_data'][0]['n50'])/1e3, 2)
@@ -174,7 +174,7 @@ for idx, x in enumerate(files):
     try:
         # JSON file
         # debug by printing JSON file to stdout
-        # print(x)
+        print(x)
         f = open (x, "r")
         # Reading Python dictionary from JSON file
         data = json.loads(f.read())
