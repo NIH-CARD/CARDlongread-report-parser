@@ -174,7 +174,7 @@ for idx, x in enumerate(files):
     try:
         # JSON file
         # debug by printing JSON file to stdout
-        print(x)
+        # print(x)
         f = open (x, "r")
         # Reading Python dictionary from JSON file
         data = json.loads(f.read())
