@@ -622,7 +622,10 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
 
 if grouped is False:
     # run above summary statistics function
-    (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,None,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell,results.platform_qc)
+    if longread_extract_with_platform_qc_and_diff is not None:
+        (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell) 
+    else:
+        (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,None,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell)
     # output data frames and figures to excel spreadsheet
     writer = pd.ExcelWriter(results.output_file)
     # write data frames with a row between each
@@ -650,7 +653,10 @@ elif grouped is True:
     # loop through all group names from input
     for idx, i in enumerate(results.names):
         # run above summary statistics function
-        (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],longread_extract_with_platform_qc_and_diff[longread_extract_with_platform_qc_and_diff['Group']==i],longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i],results.platform_qc)
+        if longread_extract_with_platform_qc_and_diff is not None:
+            (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],longread_extract_with_platform_qc_and_diff[longread_extract_with_platform_qc_and_diff['Group']==i],longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i])
+        else:
+            (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],None,longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i])
         # write data frames with a row between each
         # write combined summary stats
         start_row = 0
