@@ -590,7 +590,7 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
     combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
 
     # include platform QC active pores/pore difference information where applicable
-    if platform_qc is not None:
+    if longread_extract_with_platform_qc_and_diff is not None:
         # combine summary stats into one list
         combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,read_count_summary_stats,starting_active_pores_summary_stats,platform_qc_summary_stats,pore_difference_qc_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
         # make data frame from combined_summary_stats
@@ -622,7 +622,7 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
 
 if grouped is False:
     # run above summary statistics function
-    if longread_extract_with_platform_qc_and_diff is not None:
+    if results.platform_qc is not None:
         (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell) 
     else:
         (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,None,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell)
@@ -653,7 +653,7 @@ elif grouped is True:
     # loop through all group names from input
     for idx, i in enumerate(results.names):
         # run above summary statistics function
-        if longread_extract_with_platform_qc_and_diff is not None:
+        if results.platform_qc is not None:
             (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],longread_extract_with_platform_qc_and_diff[longread_extract_with_platform_qc_and_diff['Group']==i],longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i])
         else:
             (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],None,longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i])
