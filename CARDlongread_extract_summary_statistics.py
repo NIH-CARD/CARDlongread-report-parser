@@ -170,7 +170,7 @@ def identify_reconnections(data):
     return data_with_reconnections
     
 # make violinplot/swarmplot figure worksheet in output workbook
-def make_violinswarmplot_worksheet(data,input_variable,workbook,worksheet_name,x_axis_title=None,cutoff=None,title=None,top_up=None):
+def make_violinswarmplot_worksheet(data,input_variable,group_variable,legend_patches,user_palette,strip_plot_set,workbook,worksheet_name,x_axis_title=None,cutoff=None,title=None,top_up=None):
     # create worksheet for figure output
     worksheet=workbook.create_sheet(worksheet_name)
     # initialize raw data buffer for image
@@ -180,14 +180,55 @@ def make_violinswarmplot_worksheet(data,input_variable,workbook,worksheet_name,x
     # make swarm plot to show how data points overlap with distribution
     # color points based on top up variable (initial run, top up, reconnection, recovery)
     # replace color='black'
-    if top_up is not None:
-        rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
-        ax = sb.swarmplot(data=data,x=input_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
+    # set up plots differently depending on whether group variable is set
+    if (group_variable is None):
+        # make swarm plot to show how data points overlap with distribution
+        # replace color='black'
+        if strip_plot_set is False:
+            if top_up is not None:
+                rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+                ax = sb.swarmplot(data=data,x=input_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
+            else:
+                ax = sb.swarmplot(data=data,x=input_variable,color='black')
+        elif strip_plot_set is True:
+            if top_up is not None:
+                rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+                ax = sb.stripplot(data=data,x=input_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
+            else:
+                ax = sb.stripplot(data=data,x=input_variable,color='black')
+        # add violin plot using seaborn (sb.violinplot)
+        # increase transparency to improve swarmplot visibility
+        # use boxplot since only one "group" shown
+        ax = sb.violinplot(data=data,x=input_variable,color='white',ax=ax)
     else:
-        ax = sb.swarmplot(data=data,x=input_variable,color='black')
-    # add violin plot using seaborn (sb.violinplot)
-    # increase transparency to improve swarmplot visibility
-    ax = sb.violinplot(data=data,x=input_variable,color='white',ax=ax)
+        # make swarm plot to show how data points overlap with distribution
+        # input variable on y axis and group on x axis
+        # thus vertical swarm/violinplots instead of horizontal ones when no group specified
+        # replace color='black' with hue set to group variable
+        if strip_plot_set is False:
+            # allow user set palette
+            if user_palette is None:
+                if top_up is not None:
+                    rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+                    ax = sb.swarmplot(data=data,x=group_variable,y=input_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
+                else:
+                    ax = sb.swarmplot(data=data,x=group_variable,y=input_variable,hue=group_variable,legend=False)
+            else:
+                ax = sb.swarmplot(data=data,x=group_variable,y=input_variable,hue=group_variable,palette=user_palette,legend=False)
+        elif strip_plot_set is True:
+            # allow user set palette
+            if user_palette is None:
+                if top_up is not None:
+                    rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+                    ax = sb.stripplot(data=data,x=group_variable,y=input_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
+                else:
+                    ax = sb.stripplot(data=data,x=group_variable,y=input_variable,hue=group_variable,legend=False)
+            else:
+                ax = sb.stripplot(data=data,x=group_variable,y=input_variable,hue=group_variable,palette=user_palette,legend=False)
+        # add violin plot using seaborn (sb.violinplot)
+        # increase transparency to improve swarmplot visibility
+        # include quartile lines in this context (for easily, visually comparing between groups)
+        ax = sb.violinplot(data=data,x=group_variable,y=input_variable,color='white',inner="quartile",ax=ax)
     # add x axis title if specified 
     if x_axis_title is not None:
         ax.set(xlabel=x_axis_title)
@@ -197,7 +238,15 @@ def make_violinswarmplot_worksheet(data,input_variable,workbook,worksheet_name,x
     # add red line for 90GB/30X cutoff or whatever necessary for specific plots
     # cutoff line defined by x value
     if cutoff is not None:
-        ax.axvline(x=cutoff,color='red')
+        # vertical line if non-grouped
+        if (group_variable is None):
+            ax.axvline(x=cutoff,color='red')
+        # horizontal line if grouped (group variable on x-axis)
+        else:
+            ax.axhline(y=cutoff,color='red')
+    # add legend with colors if requested
+    if legend_patches is not None:
+        plt.legend(handles=legend_patches)
     # put figure in variable to prep for saving into buffer
     # fig = swarmplot.get_figure()
     # save figure as 200 dpi PNG into buffer
@@ -251,7 +300,7 @@ def platform_qc_starting_active_pore_diff(data,platform_qc):
 
 # single function for scatterplots with/without cutoffs
 
-def make_scatterplot_worksheet(data,workbook,worksheet_name,title=None,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable=None,y_variable=None,prop_point_size=False,size_column=None,has_date_time=False):
+def make_scatterplot_worksheet(data,group_variable,legend_patches,user_palette,strip_plot_set,workbook,worksheet_name,title=None,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable=None,y_variable=None,prop_point_size=False,size_column=None,has_date_time=False):
     # create worksheet for figure output
     worksheet=workbook.create_sheet(worksheet_name)
     # initialize raw data buffer for image
@@ -263,12 +312,33 @@ def make_scatterplot_worksheet(data,workbook,worksheet_name,title=None,x_cutoffs
     # had to remove regression to use hue keyword
     # color points by topup/not topup run if show_run_colors is True
     if show_run_colors is True and prop_point_size is False:
-        rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
-        ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette)
+        # show top up colors if no group variable included
+        if group_variable is None:
+            rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+            ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette)
+        # override top up colors if group variable included
+        else:
+            # default palette if no palette specified
+            if user_palette is None:
+                ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue=group_variable)
+            # otherwise use user specified palette
+            else:
+                ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue=group_variable,palette=user_palette)
     # add point size if specified (prop_point_size is True)
+    # note use of data[size_column] as point size
     elif show_run_colors is True and prop_point_size is True:
-        rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
-        ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,size=data[size_column])
+        # show top up colors if no group variable included
+        if group_variable is None:
+            rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+            ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,size=data[size_column])
+        # override top up colors if no group variable included
+        else:
+            # default palette if no palette specified
+            if user_palette is None:
+                ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue=group_variable,size=data[size_column])
+            # otherwise use user specified palette
+            else:
+                ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue=group_variable,palette=user_palette,size=data[size_column])
     elif show_run_colors is False and prop_point_size is False:
         ax = sb.scatterplot(data=data,x=x_variable,y=y_variable)
     # add point size if specified (prop_point_size is True)
@@ -294,6 +364,9 @@ def make_scatterplot_worksheet(data,workbook,worksheet_name,title=None,x_cutoffs
         for idx, i in enumerate(y_cutoffs):
             # add horizontal y cutoffs sequentially
             ax.axhline(y=i,color=y_cutoff_colors[idx])
+    # add legend with colors if requested
+    if legend_patches is not None:
+        plt.legend(handles=legend_patches)
     # handling datetime based x axis
     if has_date_time is True:
         ax.set_xlim(data[x_variable].min(),data[x_variable].max())
@@ -329,6 +402,16 @@ parser.add_argument('-plot_title', action="store", default=None, dest="plot_titl
 parser.add_argument('--plot_cutoff', action=argparse.BooleanOptionalAction, default=True, dest="plot_cutoff", help="Include cutoff lines in violin plots (optional; default true; --no-plot_cutoff to override)")
 # include failed run cutoff to exclude as well
 parser.add_argument('-run_cutoff', action="store", default=1, type=float, dest="run_cutoff", help="Minimum data output per flow cell run to include (optional, 1 Gb default)")
+# add option for stripplot instead of swarmplot (in case of excessive data points)
+parser.add_argument('--strip_plot', action=argparse.BooleanOptionalAction, default=False, dest="strip_plot", help="Show strip plots instead of swarm plots inside violin plots (optional; default false)")
+# add option for color palette
+parser.add_argument('-colors', action="store", default=None, dest="colors", nargs="*", help="Color palette corresponding to sequential groups displayed (e.g., 'blue', 'red', 'blue'); optional and used only if more than one tsv provided.")
+# add option for custom legend colors
+parser.add_argument('-legend_colors', action="store", default=None, dest="legend_colors", nargs="*", help="Colors shown in the legend (e.g., 'blue', 'red'); optional and used only if more color palette included above. Must be palette subset.")
+# add option for custom legend labels
+parser.add_argument('-legend_labels', action="store", default=None, dest="legend_labels", nargs="*", help="Labels for each color in legend in order specified in -legend_colors.")
+# add option to show sample size for groups in grouped violinplots
+parser.add_argument('--group_count', action=argparse.BooleanOptionalAction, default=False, dest="show_group_count", help="Show group count in x-axis labels (optional; default false)")
 
 # parse arguments
 results = parser.parse_args()
@@ -342,6 +425,33 @@ if len(results.input_file)>1:
     if len(results.names)<=1:
         quit('ERROR: Multiple input files provided but not multiple names (-names).')
         
+# throw error if no names provided if multiple input files provided
+if len(results.input_file)>1:
+    if len(results.names)<=1:
+        quit('ERROR: Multiple input files provided but not multiple names (-names).')
+    elif len(results.names) != len(results.input_file):
+        quit('ERROR: Number of names is different from number of input files.')
+    # test if number of colors different from input files and names
+    elif (results.colors is not None) and (len(results.colors) != len(results.names)):
+        quit("ERROR: Color palette provided, but number of colors doesnt match number of group names.")
+        
+# set legend_patches to None by default
+legend_patches=None
+# test if legend colors and labels have proper length
+if (results.legend_colors is not None) or (results.legend_labels is not None):
+    if len(results.legend_colors) != len(results.legend_labels):
+        quit('ERROR: Number of legend colors does not match number of legend labels.')
+    else:
+        # prepare legend patches
+        # make list as long as legend colors (at this point same as legend_labels)
+        legend_patches = [0] * len(results.legend_colors)
+        for idx, i in enumerate(results.legend_colors):
+            legend_patches[idx] = mpatches.Patch(color=i, label=results.legend_labels[idx])
+        
+# test if legend colors provided but not labels or vice versa
+if ((results.legend_colors is not None) and (results.legend_labels is None)) or ((results.legend_colors is None) and (results.legend_labels is not None)):
+    quit('ERROR: Either legend colors or legend labels provided but not both.')
+        
 # set default output filename
 if results.output_file is None:
     results.output_file='output_summary_statistics.xlsx'
@@ -350,17 +460,75 @@ if results.output_file is None:
 # case if just one input file provided
 if len(results.input_file)==1:
     longread_extract_initial=pd.read_csv(results.input_file[0],sep='\t')
+    # first filter out low output runs
+    longread_extract = longread_extract_initial[longread_extract_initial['Data output (Gb)'] > results.run_cutoff]
+    # fix indices
+    longread_extract.reset_index(drop='True',inplace=True)
+    # add top up column to data frame
+    # avoid nested tuple warning
+    # longread_extract["Top up"] = identify_topups(longread_extract["Sample Name"])
+    # add after 12th column or last column (dataframe.shape[1])
+    longread_extract.insert(longread_extract.shape[1],"Top up",identify_topups(longread_extract["Sample Name"]),True)
+    # identify reconnections amongst flow cells
+    longread_extract = identify_reconnections(longread_extract)
+    # convert run starting timestamp to date and time
+    longread_extract['Run date']=[datetime.fromtimestamp(x) for x in pd.to_numeric(longread_extract['Start Run Timestamp'])]
+    # get flow cells/output per experiment table overall
+    longread_extract_flow_cells_and_output_per_experiment = get_flow_cells_and_output_per_experiment(longread_extract['Experiment Name'], longread_extract['Flow Cell ID'], longread_extract['Data output (Gb)'])
+    # get output per flow cell table overall
+    longread_extract_output_per_flow_cell = get_output_per_flow_cell(longread_extract['Flow Cell ID'], longread_extract['Data output (Gb)'], longread_extract['Top up'])
     grouped=False
 # what if multiple input files provided
 elif len(results.input_file)>1:
     # store input tables in list as long input filename set
     longread_extract_initial_list=[0] * len(results.input_file)
+    # store flow cells/output per experiment tables for each group
+    longread_extract_flow_cells_and_output_per_experiment_initial_list=[0] * len(results.input_file)
+    # store output per flow cell tables for each group
+    longread_extract_output_per_flow_cell_initial_list=[0] * len(results.input_file)
+    # iterate through groups
     for idx, i in enumerate(results.input_file): 
         longread_extract_initial_list[idx]=pd.read_csv(i,sep='\t')
+        # first filter out low output runs
+        longread_extract_initial_list[idx]=longread_extract_initial_list[idx][longread_extract_initial_list[idx]['Data output (Gb)'] > results.run_cutoff]
+        # fix indices
+        longread_extract_initial_list[idx].reset_index(drop='True',inplace=True)
+        # add top up column to data frame
+        # avoid nested tuple warning
+        # longread_extract["Top up"] = identify_topups(longread_extract["Sample Name"])
+        # add after 12th column or last column (dataframe.shape[1])
+        longread_extract_initial_list[idx].insert(longread_extract_initial_list[idx].shape[1],"Top up",identify_topups(longread_extract_initial_list[idx]["Sample Name"]),True)
+        # identify reconnections amongst flow cells
+        longread_extract_initial_list[idx] = identify_reconnections(longread_extract_initial_list[idx])
+        # convert run starting timestamp to date and time
+        longread_extract_initial_list[idx]['Run date']=[datetime.fromtimestamp(x) for x in pd.to_numeric(longread_extract_initial_list[idx]['Start Run Timestamp'])]
+        # get flow cells/output per experiment table for group
+        longread_extract_flow_cells_and_output_per_experiment_initial_list[idx] = get_flow_cells_and_output_per_experiment(longread_extract_initial_list[idx]['Experiment Name'], longread_extract_initial_list[idx]['Flow Cell ID'], longread_extract_initial_list[idx]['Data output (Gb)'])
+        # get output per flow cell table for group
+        longread_extract_output_per_flow_cell_initial_list[idx] = get_output_per_flow_cell(longread_extract_initial_list[idx]['Flow Cell ID'], longread_extract_initial_list[idx]['Data output (Gb)'], longread_extract_initial_list[idx]['Top up'])
         # add group name to each table in list
-        longread_extract_initial_list[idx]['Group']=results.names[idx]
+        if results.show_group_count is True:
+            # if group count specified, add group count to group name
+            group_count = len(longread_extract_initial_list[idx])
+            # in this way, show n=717 or similar below group names in all plots
+            # note this is count of runs per group after filtering for per run cutoff
+            longread_extract_initial_list[idx]['Group']=results.names[idx]
+            longread_extract_initial_list[idx]['Group and count']=results.names[idx] + "\nn=" + str(group_count)
+            # do this for additional distributions
+            longread_extract_flow_cells_and_output_per_experiment_initial_list[idx]['Group']=results.names[idx]
+            longread_extract_flow_cells_and_output_per_experiment_initial_list[idx]['Group and count']=results.names[idx] + "\nn=" + str(group_count)
+            longread_extract_output_per_flow_cell_initial_list[idx]['Group']=results.names[idx]
+            longread_extract_output_per_flow_cell_initial_list[idx]['Group and count']=results.names[idx] + "\nn=" + str(group_count)
+            # group_names_list[idx]=results.names[idx] + "\nn=" + str(group_count)
+        else:
+            longread_extract_initial_list[idx]['Group']=results.names[idx]
+            # add group name to additional distributions
+            longread_extract_flow_cells_and_output_per_experiment_initial_list[idx]['Group']=results.names[idx]
+            longread_extract_output_per_flow_cell_initial_list[idx]['Group']=results.names[idx]
     # combine groups into single concatenated data table
-    longread_extract_initial=pd.concat(longread_extract_initial_list[:],ignore_index=True)
+    longread_extract=pd.concat(longread_extract_initial_list[:],ignore_index=True)
+    longread_extract_flow_cells_and_output_per_experiment=pd.concat(longread_extract_flow_cells_and_output_per_experiment_initial_list[:],ignore_index=True)
+    longread_extract_output_per_flow_cell=pd.concat(longread_extract_output_per_flow_cell_initial_list[:],ignore_index=True)
     # set grouped variable
     grouped=True
 
@@ -369,19 +537,6 @@ if results.platform_qc is not None:
     platform_qc_table=pd.read_csv(results.platform_qc)
 
 # use functions above
-# first filter out low output runs
-longread_extract = longread_extract_initial[longread_extract_initial['Data output (Gb)'] > results.run_cutoff]
-# fix indices
-longread_extract.reset_index(drop='True',inplace=True)
-# add top up column to data frame
-# avoid nested tuple warning
-# longread_extract["Top up"] = identify_topups(longread_extract["Sample Name"])
-# add after 12th column or last column (dataframe.shape[1])
-longread_extract.insert(longread_extract.shape[1],"Top up",identify_topups(longread_extract["Sample Name"]),True)
-# identify reconnections amongst flow cells
-longread_extract = identify_reconnections(longread_extract)
-# convert run starting timestamp to date and time
-longread_extract['Run date']=[datetime.fromtimestamp(x) for x in pd.to_numeric(longread_extract['Start Run Timestamp'])]
 # if platform qc file provided, make joined longread_extract/platform_qc_table
 if results.platform_qc is not None:
     longread_extract_with_platform_qc_and_diff=platform_qc_starting_active_pore_diff(longread_extract,platform_qc_table)
@@ -396,49 +551,50 @@ if results.platform_qc is not None:
     # convert to iso8601 format
     longread_extract_with_platform_qc_and_diff['Platform QC date']=[datetime.fromtimestamp(x) for x in pd.to_numeric(longread_extract_with_platform_qc_and_diff['timestamp'])]
     longread_extract_with_platform_qc_and_diff['Run date']=[datetime.fromtimestamp(x) for x in pd.to_numeric(longread_extract_with_platform_qc_and_diff['Start Run Timestamp'])]        
-# flow cells per experiment
-longread_extract_flow_cells_and_output_per_experiment = get_flow_cells_and_output_per_experiment(longread_extract['Experiment Name'], longread_extract['Flow Cell ID'], longread_extract['Data output (Gb)'])
-# output per flow cell
-longread_extract_output_per_flow_cell = get_output_per_flow_cell(longread_extract['Flow Cell ID'], longread_extract['Data output (Gb)'], longread_extract['Top up'])
-# flow cells per experiment distribution
-longread_extract_flow_cells_per_experiment_dist = get_flow_cells_per_experiment_dist(longread_extract_flow_cells_and_output_per_experiment['Flow Cells'])
-# summary statistics on...
-# read N50
-read_N50_summary_stats = get_summary_statistics(longread_extract['N50 (kb)'])
-# sequence output
-sequence_output_summary_stats = get_summary_statistics(longread_extract['Data output (Gb)'])
-# read count per run
-read_count_summary_stats = get_summary_statistics(longread_extract['Read Count (M)'])
-# starting active pores per run
-starting_active_pores_summary_stats = get_summary_statistics(longread_extract['Starting Active Pores'])
-# platform QC active pores per run if possible
-if results.platform_qc is not None:
-    platform_qc_summary_stats = get_summary_statistics(longread_extract_with_platform_qc_and_diff['total_pore_count'])
-    # differences between platform QC and starting active pores if possible
-    pore_difference_qc_summary_stats = get_summary_statistics(longread_extract_with_platform_qc_and_diff['Pore Difference'])
-# flow cells per experiment
-flow_cells_per_experiment_summary_stats = get_summary_statistics(longread_extract_flow_cells_and_output_per_experiment['Flow Cells'])
-# output per flow cell
-output_per_flow_cell_summary_stats = get_summary_statistics(longread_extract_output_per_flow_cell['Flow cell output (Gb)'])
-# total output per experiment
-output_per_experiment_summary_stats = get_summary_statistics(longread_extract_flow_cells_and_output_per_experiment['Total output (Gb)'])
 
-# combine summary stats into one list
-combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,read_count_summary_stats,starting_active_pores_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
+# functionalize all below to run through on separate groups
+def longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell,platform_qc):
+    # flow cells per experiment distribution
+    longread_extract_flow_cells_per_experiment_dist = get_flow_cells_per_experiment_dist(longread_extract_flow_cells_and_output_per_experiment['Flow Cells'])
+    # summary statistics on...
+    # read N50
+    read_N50_summary_stats = get_summary_statistics(longread_extract['N50 (kb)'])
+    # sequence output
+    sequence_output_summary_stats = get_summary_statistics(longread_extract['Data output (Gb)'])
+    # read count per run
+    read_count_summary_stats = get_summary_statistics(longread_extract['Read Count (M)'])
+    # starting active pores per run
+    starting_active_pores_summary_stats = get_summary_statistics(longread_extract['Starting Active Pores'])
+    # platform QC active pores per run if possible
+    if platform_qc is not None:
+        platform_qc_summary_stats = get_summary_statistics(longread_extract_with_platform_qc_and_diff['total_pore_count'])
+        # differences between platform QC and starting active pores if possible
+        pore_difference_qc_summary_stats = get_summary_statistics(longread_extract_with_platform_qc_and_diff['Pore Difference'])
+    # flow cells per experiment
+    flow_cells_per_experiment_summary_stats = get_summary_statistics(longread_extract_flow_cells_and_output_per_experiment['Flow Cells'])
+    # output per flow cell
+    output_per_flow_cell_summary_stats = get_summary_statistics(longread_extract_output_per_flow_cell['Flow cell output (Gb)'])
+    # total output per experiment
+    output_per_experiment_summary_stats = get_summary_statistics(longread_extract_flow_cells_and_output_per_experiment['Total output (Gb)'])
 
-# make data frame from combined_summary_stats
-combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Run read count (millions)','Starting active pores','Flow cells per experiment','Flow cell output (Gb)', 'Total experiment output (Gb)']
-combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
-
-# include platform QC active pores/pore difference information where applicable
-if results.platform_qc is not None:
     # combine summary stats into one list
-    combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,read_count_summary_stats,starting_active_pores_summary_stats,platform_qc_summary_stats,pore_difference_qc_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
+    combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,read_count_summary_stats,starting_active_pores_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
+
     # make data frame from combined_summary_stats
-    combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Run read count (millions)','Starting active pores','Platform QC active pores','Pore difference','Flow cells per experiment','Flow cell output (Gb)','Total experiment output (Gb)']
+    combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Run read count (millions)','Starting active pores','Flow cells per experiment','Flow cell output (Gb)', 'Total experiment output (Gb)']
     combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
-# minknow version distribution
-longread_extract_minknow_version_dist = get_minknow_version_dist(longread_extract['MinKNOW Version'])
+
+    # include platform QC active pores/pore difference information where applicable
+    if platform_qc is not None:
+        # combine summary stats into one list
+        combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,read_count_summary_stats,starting_active_pores_summary_stats,platform_qc_summary_stats,pore_difference_qc_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
+        # make data frame from combined_summary_stats
+        combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Run read count (millions)','Starting active pores','Platform QC active pores','Pore difference','Flow cells per experiment','Flow cell output (Gb)','Total experiment output (Gb)']
+        combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
+    # minknow version distribution
+    longread_extract_minknow_version_dist = get_minknow_version_dist(longread_extract['MinKNOW Version'])
+    # stop functionalizing here
+    return(combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)
 
 # save data frames as tab-delimited file (.tsv)
 # Example data structure
@@ -459,120 +615,165 @@ longread_extract_minknow_version_dist = get_minknow_version_dist(longread_extrac
 # etc.
 # <empty>
 
-# output data frames and figures to excel spreadsheet
-writer = pd.ExcelWriter(results.output_file)
-# write data frames with a row between each
-# write combined summary stats
-start_row = 0
-combined_summary_stats_df.to_excel(writer, startrow=start_row, index=False, sheet_name='Summary statistics report')
-# write flow cells per experiment distribution
-# add 1 to row number after combined_summary_stats_df exported
-start_row = start_row + len(combined_summary_stats_df) + 2
-longread_extract_flow_cells_per_experiment_dist.to_excel(writer, startrow=start_row, index=False, sheet_name='Summary statistics report')
-# write minknow version distribution
-start_row = start_row + len(longread_extract_flow_cells_per_experiment_dist) + 2
-longread_extract_minknow_version_dist.to_excel(writer, startrow=start_row, index=False, sheet_name='Summary statistics report')
-# write flow cells and output per flow cell on another worksheet
-longread_extract_output_per_flow_cell.to_excel(writer, index=False, sheet_name='Output per flow cell ID')
-# write flow cells and output per unique experiment on another worksheet
-longread_extract_flow_cells_and_output_per_experiment.to_excel(writer, index=False, sheet_name='FC + output per experiment')
-# eventually write joined platform QC/summary table to worksheet (to do)
-# close writer and save workbook
-writer.close()
+if grouped is False:
+    # run above summary statistics function
+    (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell,results.platform_qc)
+    # output data frames and figures to excel spreadsheet
+    writer = pd.ExcelWriter(results.output_file)
+    # write data frames with a row between each
+    # write combined summary stats
+    start_row = 0
+    combined_summary_stats_df.to_excel(writer, startrow=start_row, index=False, sheet_name='Summary statistics report')
+    # write flow cells per experiment distribution
+    # add 1 to row number after combined_summary_stats_df exported
+    start_row = start_row + len(combined_summary_stats_df) + 2
+    longread_extract_flow_cells_per_experiment_dist.to_excel(writer, startrow=start_row, index=False, sheet_name='Summary statistics report')
+    # write minknow version distribution
+    start_row = start_row + len(longread_extract_flow_cells_per_experiment_dist) + 2
+    longread_extract_minknow_version_dist.to_excel(writer, startrow=start_row, index=False, sheet_name='Summary statistics report')
+    # write flow cells and output per flow cell on another worksheet
+    longread_extract_output_per_flow_cell.to_excel(writer, index=False, sheet_name='Output per flow cell ID')
+    # write flow cells and output per unique experiment on another worksheet
+    longread_extract_flow_cells_and_output_per_experiment.to_excel(writer, index=False, sheet_name='FC + output per experiment')
+    # eventually write joined platform QC/summary table to worksheet (to do)
+    # close writer and save workbook
+    writer.close()
+elif grouped is True:
+    # output data frames and figures to excel spreadsheet
+    writer = pd.ExcelWriter(results.output_file)
+    # run through loop here
+    # loop through all group names from input
+    for idx, i in enumerate(results.names):
+        # run above summary statistics function
+        (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],longread_extract_with_platform_qc_and_diff[longread_extract_with_platform_qc_and_diff['Group']==i],longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i],results.platform_qc)
+        # write data frames with a row between each
+        # write combined summary stats
+        start_row = 0
+        combined_summary_stats_df.to_excel(writer, startrow=start_row, index=False, sheet_name=i + ' statistics')
+        # write flow cells per experiment distribution
+        # add 1 to row number after combined_summary_stats_df exported
+        start_row = start_row + len(combined_summary_stats_df) + 2
+        longread_extract_flow_cells_per_experiment_dist.to_excel(writer, startrow=start_row, index=False, sheet_name=i + ' statistics')
+        # write minknow version distribution
+        start_row = start_row + len(longread_extract_flow_cells_per_experiment_dist) + 2
+        longread_extract_minknow_version_dist.to_excel(writer, startrow=start_row, index=False, sheet_name=i + ' statistics')
+        # write flow cells and output per flow cell on another worksheet
+        longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i].to_excel(writer, index=False, sheet_name=i + ' output per flow cell')
+        # write flow cells and output per unique experiment on another worksheet
+        longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i].to_excel(writer, index=False, sheet_name=i + ' FC + output per experiment')
+        # eventually write joined platform QC/summary table to worksheet (to do)
+    # close writer and save workbook
+    writer.close()
+
 # then add svg figures
 # use openpyxl and pipe image data into new worksheets
 # append new worksheets to existing workbook
 workbook = openpyxl.load_workbook(results.output_file)
 
-# use make_violinswarmplot_worksheet function to insert figures
-# plots that don't need cutoff included below to maintain order of spreadsheets (and order of figures)
-# if/else depending on whether -plot_cutoff set
-if results.plot_cutoff is True:
-    # show topups in first three plots
-    make_violinswarmplot_worksheet(longread_extract,"N50 (kb)",workbook,'Read N50 plot',None,None,results.plot_title,True)
-    make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",workbook,'Run data output plot',None,90,results.plot_title,True)
-    make_violinswarmplot_worksheet(longread_extract,"Read Count (M)",workbook,'Run read count plot',"Read Count (million reads)",None,results.plot_title,True)
-    make_violinswarmplot_worksheet(longread_extract,"Starting Active Pores",workbook,'Starting active pores plot',"Starting active pores",6500,results.plot_title,True)
-    # no topups in next three plots
-    make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Flow Cells",workbook,'Flow cells per experiment plot',"Flow cells",None,results.plot_title)
-    make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Total output (Gb)",workbook,'Output per experiment plot',None,90,results.plot_title)
-    make_violinswarmplot_worksheet(longread_extract_output_per_flow_cell,"Flow cell output (Gb)",workbook,'Output per flow cell plot',None,90,results.plot_title)
-    # platform qc violin/swarm plots
+# probably functionalize all plots below and pass in group/group count variables
+def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_plot_set):
+    # use make_violinswarmplot_worksheet function to insert figures
+    # plots that don't need cutoff included below to maintain order of spreadsheets (and order of figures)
+    # if/else depending on whether -plot_cutoff set
+    if results.plot_cutoff is True:
+        # show topups in first four plots
+        make_violinswarmplot_worksheet(longread_extract,"N50 (kb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Read N50 plot',None,None,results.plot_title,True)
+        make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run data output plot',None,90,results.plot_title,True)
+        make_violinswarmplot_worksheet(longread_extract,"Read Count (M)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run read count plot',"Read Count (million reads)",None,results.plot_title,True)
+        make_violinswarmplot_worksheet(longread_extract,"Starting Active Pores",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting active pores plot',"Starting active pores",6500,results.plot_title,True)
+        # no topups in next three plots
+        make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Flow Cells",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Flow cells per experiment plot',"Flow cells",None,results.plot_title)
+        make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Total output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Output per experiment plot',None,90,results.plot_title)
+        make_violinswarmplot_worksheet(longread_extract_output_per_flow_cell,"Flow cell output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Output per flow cell plot',None,90,results.plot_title)
+        # platform qc violin/swarm plots
+        if results.platform_qc is not None:
+            # platform qc active pores 
+            make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Platform QC active pores",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Platform QC active pores plot',None,6500,results.plot_title)
+            # pore differences between sequencing and platform QC
+            # show topups
+            make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Pore Difference",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Platform-seq pore diff plot',"Platform to sequencing pore difference",None,results.plot_title,True)
+            # time differences between sequencing and platform QC
+            # show topups
+            make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Time Difference",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Platform-seq time diff plot',"Platform to sequencing time difference",None,results.plot_title,True)
+    else:
+        # show topups in first four plots
+        make_violinswarmplot_worksheet(longread_extract,"N50 (kb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Read N50 plot',None,None,results.plot_title,True)
+        make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run data output plot',None,None,results.plot_title,True)
+        make_violinswarmplot_worksheet(longread_extract,"Read Count (M)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run read count plot',"Read Count (million reads)",None,results.plot_title,True)
+        make_violinswarmplot_worksheet(longread_extract,"Starting Active Pores",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting active pores plot',"Starting active pores",None,results.plot_title,True)
+        # no topups in next three plots
+        make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Flow Cells",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Flow cells per experiment plot',"Flow cells",None,results.plot_title)
+        make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Total output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Output per experiment plot',None,None,results.plot_title)
+        make_violinswarmplot_worksheet(longread_extract_output_per_flow_cell,"Flow cell output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Output per flow cell plot',None,None,results.plot_title)
+        # platform qc violin/swarm plots
+        if results.platform_qc is not None:
+            # platform qc active pores 
+            make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Platform QC active pores",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Platform QC active pores plot',None,None,results.plot_title)
+            # pore differences between sequencing and platform QC
+            make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Pore Difference",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Platform-seq pore diff plot',"Platform to sequencing pore difference",None,results.plot_title)
+            # time differences between sequencing and platform QC
+            make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Time Difference",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Platform-seq time diff plot',"Platform to sequencing time difference",None,results.plot_title)
+    # use make_active_pore_data_output_scatterplot function to add starting active pore vs. data output scatterplot
+    # make_active_pore_data_output_scatterplot(longread_extract,workbook,'Active pores vs. data output',results.plot_title)
+    # redo with make_scatterplot_worksheet
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Active pores vs. data output",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
+    # do also with read count
+    # cutoffs not known yet for read count
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Active pores vs. read count",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
+    # make_active_pore_flow_cell_output_scatterplot(longread_extract_output_per_flow_cell,workbook,'Active pores vs. flow cell output',results.plot_title)
+    # make_active_pore_read_n50_scatterplot(longread_extract,workbook,'Active pores vs. read N50',results.plot_title)
+    # redo with make_scatterplot_worksheet
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Active pores vs. read N50",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='N50 (kb)',prop_point_size=False,size_column=None)            
+    # make_read_n50_data_output_scatterplot(longread_extract,workbook,'Read N50 vs. data output',results.plot_title)
+    # redo with make_scatterplot_worksheet
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Read N50 vs. data output",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=True,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
+    # add read N50 vs. data output without regression line
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Read N50 vs. data no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)     
+    # do also with read count
+    # redo with make_scatterplot_worksheet
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Read N50 vs. read count",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=True,x_variable='N50 (kb)',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
+    # add read N50 vs. data output without regression line
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Read N50 vs. count no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Read Count (M)',prop_point_size=False,size_column=None)     
+    # log10 transform platform qc active pores, starting active pores, and pore differences 
     if results.platform_qc is not None:
-        # platform qc active pores 
-        make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Platform QC active pores",workbook,'Platform QC active pores plot',None,6500,results.plot_title)
-        # pore differences between sequencing and platform QC
-        # show topups
-        make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Pore Difference",workbook,'Platform-seq pore diff plot',"Platform to sequencing pore difference",None,results.plot_title,True)
-        # time differences between sequencing and platform QC
-        # show topups
-        make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Time Difference",workbook,'Platform-seq time diff plot',"Platform to sequencing time difference",None,results.plot_title,True)
-else:
-    # show topups in first three plots
-    make_violinswarmplot_worksheet(longread_extract,"N50 (kb)",workbook,'Read N50 plot',None,None,results.plot_title,True)
-    make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",workbook,'Run data output plot',None,None,results.plot_title,True)
-    make_violinswarmplot_worksheet(longread_extract,"Read Count (M)",workbook,'Run read count plot',"Read Count (million reads)",None,results.plot_title,True)
-    make_violinswarmplot_worksheet(longread_extract,"Starting Active Pores",workbook,'Starting active pores plot',"Starting active pores",None,results.plot_title,True)
-    # no topups in next three plots
-    make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Flow Cells",workbook,'Flow cells per experiment plot',"Flow cells",None,results.plot_title)
-    make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Total output (Gb)",workbook,'Output per experiment plot',None,None,results.plot_title)
-    make_violinswarmplot_worksheet(longread_extract_output_per_flow_cell,"Flow cell output (Gb)",workbook,'Output per flow cell plot',None,None,results.plot_title)
-    # platform qc violin/swarm plots
-    if results.platform_qc is not None:
-        # platform qc active pores 
-        make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Platform QC active pores",workbook,'Platform QC active pores plot',None,None,results.plot_title)
-        # pore differences between sequencing and platform QC
-        make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Pore Difference",workbook,'Platform-seq pore diff plot',"Platform to sequencing pore difference",None,results.plot_title)
-        # time differences between sequencing and platform QC
-        make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Time Difference",workbook,'Platform-seq time diff plot',"Platform to sequencing time difference",None,results.plot_title)
-# use make_active_pore_data_output_scatterplot function to add starting active pore vs. data output scatterplot
-# make_active_pore_data_output_scatterplot(longread_extract,workbook,'Active pores vs. data output',results.plot_title)
-# redo with make_scatterplot_worksheet
-make_scatterplot_worksheet(longread_extract,workbook,"Active pores vs. data output",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
-# do also with read count
-# cutoffs not known yet for read count
-make_scatterplot_worksheet(longread_extract,workbook,"Active pores vs. read count",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
-# make_active_pore_flow_cell_output_scatterplot(longread_extract_output_per_flow_cell,workbook,'Active pores vs. flow cell output',results.plot_title)
-# make_active_pore_read_n50_scatterplot(longread_extract,workbook,'Active pores vs. read N50',results.plot_title)
-# redo with make_scatterplot_worksheet
-make_scatterplot_worksheet(longread_extract,workbook,"Active pores vs. read N50",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='N50 (kb)',prop_point_size=False,size_column=None)            
-# make_read_n50_data_output_scatterplot(longread_extract,workbook,'Read N50 vs. data output',results.plot_title)
-# redo with make_scatterplot_worksheet
-make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. data output",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=True,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
-# add read N50 vs. data output without regression line
-make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. data no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)     
-# do also with read count
-# redo with make_scatterplot_worksheet
-make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. read count",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=True,x_variable='N50 (kb)',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
-# add read N50 vs. data output without regression line
-make_scatterplot_worksheet(longread_extract,workbook,"Read N50 vs. count no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Read Count (M)',prop_point_size=False,size_column=None)     
-# log10 transform platform qc active pores, starting active pores, and pore differences 
-if results.platform_qc is not None:
-    longread_extract_with_platform_qc_and_diff['log_platform_qc_active_pores']=np.log10(pd.to_numeric(longread_extract_with_platform_qc_and_diff['Platform QC active pores']))
-    longread_extract_with_platform_qc_and_diff['log_starting_active_pores']=np.log10(pd.to_numeric(longread_extract_with_platform_qc_and_diff['Starting Active Pores']))
-    longread_extract_with_platform_qc_and_diff['log_pore_difference']=np.log10(pd.to_numeric(longread_extract_with_platform_qc_and_diff['Pore Difference']))
-    # plots to include if platform qc provided
-    # pore difference violin/swarmplot
-    # pore measurement time difference violin/swarmplot
-    # all done above
-    # platform qc active pores vs. starting active pores
-    make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,workbook,"Pqc vs. starting active pores",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Platform QC active pores',y_variable='Starting Active Pores',prop_point_size=False,size_column=None)        
-    # platform qc active pores vs. pore difference
-    make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,workbook,"Pqc vs. pore difference",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Platform QC active pores',y_variable='Pore Difference',prop_point_size=False,size_column=None)    
-    # pore difference vs. time difference scatterplot with run colors set
-    make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,workbook,"Pore vs. time difference",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Time Difference',y_variable='Pore Difference',prop_point_size=False,size_column=None)    
-    # pore difference vs. run output scatterplot
-    make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,workbook,"Pore difference vs. run output",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Pore Difference',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)        
-    # read N50 vs. run output scatterplot with coloring by run type and size based on pore difference
-    make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,workbook,"N50 output pore diff",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=True,size_column='Pore Difference')    
-    # read N50 vs. run output scatterplot with coloring by run type and size based on starting active pores
-    make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,workbook,"N50 output starting pores",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=True,size_column='Starting Active Pores')
-    # run matched platform qc active pores over time
-    make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,workbook,"Platform QC pores over time",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[6500],y_cutoff_colors=['green'],show_run_colors=True,show_reg_line=False,x_variable='Platform QC date',y_variable='Platform QC active pores',prop_point_size=False,size_column=None,has_date_time=True)
-    # pore difference over time
-    make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,workbook,"Pore difference over time",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Run date',y_variable='Pore Difference',prop_point_size=False,size_column=None,has_date_time=True)    
-# run output over time
-make_scatterplot_worksheet(longread_extract,workbook,"Run output over time",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Run date',y_variable='Data output (Gb)',prop_point_size=False,size_column=None,has_date_time=True)    
+        longread_extract_with_platform_qc_and_diff['log_platform_qc_active_pores']=np.log10(pd.to_numeric(longread_extract_with_platform_qc_and_diff['Platform QC active pores']))
+        longread_extract_with_platform_qc_and_diff['log_starting_active_pores']=np.log10(pd.to_numeric(longread_extract_with_platform_qc_and_diff['Starting Active Pores']))
+        longread_extract_with_platform_qc_and_diff['log_pore_difference']=np.log10(pd.to_numeric(longread_extract_with_platform_qc_and_diff['Pore Difference']))
+        # plots to include if platform qc provided
+        # pore difference violin/swarmplot
+        # pore measurement time difference violin/swarmplot
+        # all done above
+        # platform qc active pores vs. starting active pores
+        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pqc vs. starting active pores",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Platform QC active pores',y_variable='Starting Active Pores',prop_point_size=False,size_column=None)        
+        # platform qc active pores vs. pore difference
+        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pqc vs. pore difference",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Platform QC active pores',y_variable='Pore Difference',prop_point_size=False,size_column=None)    
+        # pore difference vs. time difference scatterplot with run colors set
+        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore vs. time difference",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Time Difference',y_variable='Pore Difference',prop_point_size=False,size_column=None)    
+        # pore difference vs. run output scatterplot
+        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore difference vs. run output",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Pore Difference',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)        
+        # read N50 vs. run output scatterplot with coloring by run type and size based on pore difference
+        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"N50 output pore diff",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=True,size_column='Pore Difference')    
+        # read N50 vs. run output scatterplot with coloring by run type and size based on starting active pores
+        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"N50 output starting pores",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=True,size_column='Starting Active Pores')
+        # run matched platform qc active pores over time
+        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Platform QC pores over time",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[6500],y_cutoff_colors=['green'],show_run_colors=True,show_reg_line=False,x_variable='Platform QC date',y_variable='Platform QC active pores',prop_point_size=False,size_column=None,has_date_time=True)
+        # pore difference over time
+        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore difference over time",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Run date',y_variable='Pore Difference',prop_point_size=False,size_column=None,has_date_time=True)    
+    # run output over time
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Run output over time",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Run date',y_variable='Data output (Gb)',prop_point_size=False,size_column=None,has_date_time=True)    
+
+# run through plots depending on whether group variable and group count variables set
+if grouped is False:
+    make_report_plot_sequence(None,legend_patches,results.colors,results.strip_plot)
+# if group variable set
+elif grouped is True:
+    # show group count if variable set
+    if results.show_group_count is True:
+        make_report_plot_sequence('Group and count',legend_patches,results.colors,results.strip_plot)
+    else:
+        make_report_plot_sequence('Group',legend_patches,results.colors,results.strip_plot)
+
+
 # save workbook when done
 workbook.save(results.output_file)
 
