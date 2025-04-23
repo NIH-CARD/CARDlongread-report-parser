@@ -515,8 +515,13 @@ elif len(results.input_file)>1:
             longread_extract_initial_list[idx]['Group']=results.names[idx]
             longread_extract_initial_list[idx]['Group and count']=results.names[idx] + "\nn=" + str(group_count)
             # do this for additional distributions
+            # change group count to match next data frame size
+            # if group count specified, add group count to group name
+            group_count = len(longread_extract_flow_cells_and_output_per_experiment_initial_list[idx])
             longread_extract_flow_cells_and_output_per_experiment_initial_list[idx]['Group']=results.names[idx]
             longread_extract_flow_cells_and_output_per_experiment_initial_list[idx]['Group and count']=results.names[idx] + "\nn=" + str(group_count)
+            # repeat for output per flow cell table
+            group_count = len(longread_extract_output_per_flow_cell_initial_list[idx])
             longread_extract_output_per_flow_cell_initial_list[idx]['Group']=results.names[idx]
             longread_extract_output_per_flow_cell_initial_list[idx]['Group and count']=results.names[idx] + "\nn=" + str(group_count)
             # group_names_list[idx]=results.names[idx] + "\nn=" + str(group_count)
