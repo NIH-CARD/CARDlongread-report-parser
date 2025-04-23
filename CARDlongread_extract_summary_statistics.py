@@ -663,9 +663,9 @@ elif grouped is True:
         start_row = start_row + len(longread_extract_flow_cells_per_experiment_dist) + 2
         longread_extract_minknow_version_dist.to_excel(writer, startrow=start_row, index=False, sheet_name=i + ' statistics')
         # write flow cells and output per flow cell on another worksheet
-        longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i].to_excel(writer, index=False, sheet_name=i + ' output per flow cell')
+        longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i].to_excel(writer, index=False, sheet_name=i + ' output per FC')
         # write flow cells and output per unique experiment on another worksheet
-        longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i].to_excel(writer, index=False, sheet_name=i + ' FC + output per experiment')
+        longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i].to_excel(writer, index=False, sheet_name=i + ' FC+output per expt')
         # eventually write joined platform QC/summary table to worksheet (to do)
     # close writer and save workbook
     writer.close()
