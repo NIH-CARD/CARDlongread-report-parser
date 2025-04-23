@@ -558,7 +558,7 @@ if results.platform_qc is not None:
     longread_extract_with_platform_qc_and_diff['Run date']=[datetime.fromtimestamp(x) for x in pd.to_numeric(longread_extract_with_platform_qc_and_diff['Start Run Timestamp'])]        
 
 # functionalize all below to run through on separate groups
-def longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell,platform_qc):
+def longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell):
     # flow cells per experiment distribution
     longread_extract_flow_cells_per_experiment_dist = get_flow_cells_per_experiment_dist(longread_extract_flow_cells_and_output_per_experiment['Flow Cells'])
     # summary statistics on...
@@ -571,7 +571,7 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
     # starting active pores per run
     starting_active_pores_summary_stats = get_summary_statistics(longread_extract['Starting Active Pores'])
     # platform QC active pores per run if possible
-    if platform_qc is not None:
+    if longread_extract_with_platform_qc_and_diff is not None:
         platform_qc_summary_stats = get_summary_statistics(longread_extract_with_platform_qc_and_diff['total_pore_count'])
         # differences between platform QC and starting active pores if possible
         pore_difference_qc_summary_stats = get_summary_statistics(longread_extract_with_platform_qc_and_diff['Pore Difference'])
@@ -622,7 +622,7 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
 
 if grouped is False:
     # run above summary statistics function
-    (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell,results.platform_qc)
+    (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,None,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell,results.platform_qc)
     # output data frames and figures to excel spreadsheet
     writer = pd.ExcelWriter(results.output_file)
     # write data frames with a row between each
