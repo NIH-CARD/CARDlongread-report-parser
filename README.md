@@ -166,3 +166,6 @@ Per run data output vs. date sequencing run was conducted with run type annotate
 <img width="642" alt="image" src="https://github.com/user-attachments/assets/1378ce87-5f45-45a8-8de3-325935a3ad96" />
 <br></br>
 
+## Comparing QC metrics across groups
+
+Having sequenced more than five cohorts and often over 10 samples each week, we found it often advantageous to compare raw QC metrics across different arbitrarily defined groups. We thus implemented group comparison functionality available through the ```-input [INPUT_FILE ...]```, ```-names [NAMES ...]```, and/or ```-colors [COLORS ...]``` command line options.
