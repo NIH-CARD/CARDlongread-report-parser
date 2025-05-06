@@ -168,14 +168,19 @@ Per run data output vs. date sequencing run was conducted with run type annotate
 
 ## Comparing QC metrics across groups
 
-Having sequenced more than five cohorts and often over 10 samples each week, we found it often advantageous to compare raw QC metrics across different arbitrarily defined groups. We thus implemented group comparison functionality available through the ```-input [INPUT_FILE ...]```, ```-names [NAMES ...]```, and/or ```-colors [COLORS ...]``` command line options. We have thus provided an additional tutorial below demonstrating group comparison with custom coloring and labeling for 20 sequencing runs randomly selected from each of five different cohorts. Input files are provided in the provided ```group_comparison``` folder.
+Having sequenced more than five cohorts and often over 10 samples each week, we found it often advantageous to compare raw QC metrics across different arbitrarily defined groups. We thus implemented group comparison functionality available through the ```-input [INPUT_FILE ...]```, ```-names [NAMES ...]```, and/or ```-colors [COLORS ...]``` command line options. We have thus provided an additional tutorial below demonstrating group comparison with custom coloring and labeling for 20 sequencing runs randomly selected from each of five different cohorts. Paths provided in JSON lists are from the NIH Biowulf HPC cluster. Input files are provided in the provided ```group_comparison``` folder.
 
 ```
 # prepare input tables for each cohort
 # cohort 1
+python CARDlongread_extract_from_json.py --filelist --output
 # cohort 2
+python CARDlongread_extract_from_json.py --filelist --output
 # cohort 3
+python CARDlongread_extract_from_json.py --filelist --output
 # cohort 4
-# cohort 5 
-# make dashboard coloring cohorts by sample type (blood or brain)
+python CARDlongread_extract_from_json.py --filelist --output
+# cohort 5
+python CARDlongread_extract_from_json.py --filelist --output
+# make dashboard for all five cohorts, coloring cohorts by sample type (blood or brain)
 ```
