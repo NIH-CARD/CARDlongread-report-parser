@@ -173,6 +173,7 @@ Having sequenced more than five cohorts and often over 10 samples each week, we 
 ```
 # run in CARDlongread-report-parser directory
 cd CARDlongread-report-parser
+
 # prepare input tables for each cohort
 # cohort 1
 python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_1_json_list.txt --output group_comparison/cohort_1_output.tsv
@@ -184,6 +185,7 @@ python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_3_js
 python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_4_json_list.txt --output group_comparison/cohort_4_output.tsv
 # cohort 5
 python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_5_json_list.txt --output group_comparison/cohort_5_output.tsv
+
 # make dashboard for all five cohorts, coloring cohorts by sample type (blood or brain)
 python CARDlongread_extract_summary_statistics.py \
   -input \
