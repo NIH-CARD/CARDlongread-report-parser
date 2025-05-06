@@ -171,16 +171,18 @@ Per run data output vs. date sequencing run was conducted with run type annotate
 Having sequenced more than five cohorts and often over 10 samples each week, we found it often advantageous to compare raw QC metrics across different arbitrarily defined groups. We thus implemented group comparison functionality available through the ```-input [INPUT_FILE ...]```, ```-names [NAMES ...]```, and/or ```-colors [COLORS ...]``` command line options. We have thus provided an additional tutorial below demonstrating group comparison with custom coloring and labeling for 20 sequencing runs randomly selected from each of five different cohorts. Paths provided in JSON lists are from the NIH Biowulf HPC cluster. Input files are provided in the provided ```group_comparison``` folder.
 
 ```
+# run in CARDlongread-report-parser directory
+cd CARDlongread-report-parser
 # prepare input tables for each cohort
 # cohort 1
-python CARDlongread_extract_from_json.py --filelist --output
+python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_1_json_list.txt --output group_comparison/cohort_1_output.tsv
 # cohort 2
-python CARDlongread_extract_from_json.py --filelist --output
+python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_2_json_list.txt --output group_comparison/cohort_2_output.tsv
 # cohort 3
-python CARDlongread_extract_from_json.py --filelist --output
+python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_3_json_list.txt --output group_comparison/cohort_3_output.tsv
 # cohort 4
-python CARDlongread_extract_from_json.py --filelist --output
+python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_4_json_list.txt --output group_comparison/cohort_4_output.tsv
 # cohort 5
-python CARDlongread_extract_from_json.py --filelist --output
+python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_5_json_list.txt --output group_comparison/cohort_5_output.tsv
 # make dashboard for all five cohorts, coloring cohorts by sample type (blood or brain)
 ```
