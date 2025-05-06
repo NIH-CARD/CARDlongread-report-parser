@@ -185,4 +185,5 @@ python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_4_js
 # cohort 5
 python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_5_json_list.txt --output group_comparison/cohort_5_output.tsv
 # make dashboard for all five cohorts, coloring cohorts by sample type (blood or brain)
+python CARDlongread_extract_summary_statistics.py
 ```
