@@ -168,7 +168,7 @@ Per run data output vs. date sequencing run was conducted with run type annotate
 
 ## Comparing QC metrics across groups
 
-Having sequenced more than five cohorts and often over 10 samples each week, we found it often advantageous to compare raw QC metrics across different arbitrarily defined groups. We thus implemented group comparison functionality available through the ```-input [INPUT_FILE ...]```, ```-names [NAMES ...]```, and/or ```-colors [COLORS ...]``` command line options. These options take a list of files along with corresponding names and colors to be applied to each input file, in the order given for the ```-input``` option. We have thus provided an additional tutorial below demonstrating group comparison with custom coloring and labeling for 20 sequencing runs randomly selected from each of five different cohorts. Cohorts are additionally colored and labeled based on sample type (blood in red, brain in blue, colors from tableau palette). Paths provided in JSON lists are paths to corresponding JSONs on the NIH Biowulf HPC cluster. Input and output files for the group comparison tutorial are provided in the provided ```group_comparison``` folder.
+Having sequenced more than five cohorts and often over 10 samples each week, we found it often advantageous to compare raw QC metrics across different arbitrarily defined groups. We thus implemented group comparison functionality available through the ```-input [INPUT_FILE ...]```, ```-names [NAMES ...]```, and/or ```-colors [COLORS ...]``` command line options. These options take a list of files along with corresponding names and colors to be applied to each input file, in the order given for the ```-input``` option. We have thus provided an additional tutorial below demonstrating group comparison with custom coloring and labeling for 20 sequencing runs randomly selected from each of five different cohorts. Cohorts are colored and labeled based on sample type (blood in red, brain in blue, colors from tableau palette). Cohorts are set in order to corresponding brain/blood colors with ```-colors```, while the legend is set to blood/brain and red/blue with ```-legend_colors``` and ```-legend_labels```, respectively. We also provide a command to generate a companion dashboard based on the same cohorts with default coloring. Paths provided in JSON lists are paths to corresponding JSONs on the NIH Biowulf HPC cluster. Input and output files for the group comparison tutorial are provided in the provided ```group_comparison``` folder.
 
 ```bash
 # run in CARDlongread-report-parser directory
@@ -200,4 +200,10 @@ python CARDlongread_extract_summary_statistics.py \
 
 # make dashboard as above, but don't use custom color/labeling options
 # instead use 'top up' colors for runs and seaborn defaults for output per flow cell/per experiment
+python CARDlongread_extract_summary_statistics.py \
+  -input group_comparison/cohort_1_output.tsv group_comparison/cohort_2_output.tsv group_comparison/cohort_3_output.tsv group_comparison/cohort_4_output.tsv group_comparison/cohort_5_output.tsv \
+  -names "Cohort 1" "Cohort 2" "Cohort 3" "Cohort 4" "Cohort 5" \
+  -output group_comparison/five_cohort_sample_comparison_dashboard_default_colors.xlsx \
+  -platform_qc group_comparison/group_comparison_platform_qc.csv \
+  --strip_plot
 ```
