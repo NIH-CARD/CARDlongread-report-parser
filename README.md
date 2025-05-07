@@ -175,6 +175,7 @@ Having sequenced more than five cohorts and often over 10 samples each week, we 
 cd CARDlongread-report-parser
 
 # prepare input tables for each cohort
+# cohort json lists include 20 randomly selected JSONs per cohort
 # cohort 1
 python CARDlongread_extract_from_json.py --filelist group_comparison/cohort_1_json_list.txt --output group_comparison/cohort_1_output.tsv
 # cohort 2
