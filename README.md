@@ -211,3 +211,8 @@ python CARDlongread_extract_summary_statistics.py \
 ```
 
 Below are example grouped violinplots from the dashboard that colors blood sample cohorts red and brain sample cohorts blue:
+
+<img width="844" alt="image" src="https://github.com/user-attachments/assets/00886cae-e602-4eeb-8013-48ad5cf555d0" />
+
+
+And below are corresponding grouped violinplots (read N50, run data output) from the default color dashboard:
