@@ -228,6 +228,7 @@ The two grouped violinplots shown below compare custom coloring with default col
 
 Both custom and default point coloring override top up based point coloring in provided scatterplots:
 
+<img width="642" alt="image" src="https://github.com/user-attachments/assets/ca1e5ca4-2a89-4fa4-b1c4-d51e77a36e08" />
 <img width="642" alt="image" src="https://github.com/user-attachments/assets/de5106b4-9b23-44fd-a1fc-633ee5c060f8" />
 
 
