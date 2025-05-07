@@ -220,3 +220,13 @@ And below are corresponding grouped violinplots (read N50, run data output) from
 <img width="720" alt="image" src="https://github.com/user-attachments/assets/d815e558-e47e-4184-8d88-cb0275ac20c4" />
 <img width="720" alt="image" src="https://github.com/user-attachments/assets/9c82fb88-f213-4ceb-855b-6f8313aa954c" />
 
+The two grouped violinplots shown below compare custom coloring with default coloring for data output per sample:
+
+<img width="720" alt="image" src="https://github.com/user-attachments/assets/34bc26e0-cc7c-431a-84f6-669421125f46" />
+<img width="720" alt="image" src="https://github.com/user-attachments/assets/60f97ecb-c11d-4ca0-acf4-bab1c7d8743a" />
+
+Both custom and default point coloring override top up based point coloring in provided scatterplots:
+
+<img width="642" alt="image" src="https://github.com/user-attachments/assets/de5106b4-9b23-44fd-a1fc-633ee5c060f8" />
+
+
