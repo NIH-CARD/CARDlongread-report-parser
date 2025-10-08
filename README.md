@@ -22,6 +22,12 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | N50 (kb) | Read length at which 50% of total bases are included, ranking reads from shortest to longest; reported for estimated bases, not basecalled bases, as shown in MinKNOW HTML report |
 | MinKNOW Version | Version of MinKNOW software used to sequence run (e.g., 25.05.14) |
 | Sample Rate (Hz) | Number of times current is measured per second for each channel in the flow cell |
+| Passed Bases (Gb) | |
+| Failed Bases (Gb) | |
+| Passed Reads (M) | |
+| Failed Reads (M) | |
+| Percentage Passed Bases | |
+| Percentage Passed Reads | |
 | Passed Modal Q Score | Basecalling quality score mode (most often value) for reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Failed Modal Q Score | Basecalling quality score mode (most often value) for reads below the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Starting Active Pores | Initial number of pores available for sequencing based on the first mux scan |
