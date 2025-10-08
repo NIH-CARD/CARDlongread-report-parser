@@ -12,21 +12,22 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | ------ | ---------- |
 | Experiment Name | Name of experiment as entered into MinKNOW before initiating the sequencing run |
 | Sample Name | Name of sample within above experiment as entered into MinKNOW before initiating sequencing run |
-| Run Date | The month, day, and year the sequencing run was conducted |
-| Sequencer ID | Serial number for the instrument on which the sequencing run was conducted |
+| Run Date | The month, day, and year the sequencing run was conducted (e.g., 2024-05-14) |
+| Sequencer ID | Serial number for the instrument on which the sequencing run was conducted; formerly named PROM ID |
 | Flow Cell Position | Alphanumeric designation for position in which sequencing run flow cell was inserted into the sequencer (e.g., 1A, 2D, 6F) |
 | Flow Cell ID | Eight digit alphanumeric serial number identifying flow cell (e.g., PAW33034) |
 | Flow Cell Product Code | Identification of flow cell type used for sequencing (e.g., FLO-PRO114M) |
 | Data output (Gb) | Amount of sequencing data generated within run in gigabases |
 | Read Count (M) | Total number of reads sequenced during run |
-| N50 (kb) | |
+| N50 (kb) | Read length at which 50% of total bases are included, ranking reads from shortest to longest; identified for  |
 | MinKNOW Version | Version of MinKNOW software used to sequence run (e.g., 25.05.14) |
 | Sample Rate (Hz) | Number of times current is measured per second for each channel in the flow cell |
-| Passed Modal Q Score | |
-| Failed Modal Q Score | |
-| Starting Active Pores | |
-| Second Active Pore Count | |
-| Average Active Pores | |
+| Passed Modal Q Score | Basecalling quality score mode (most often value) for reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
+| Failed Modal Q Score | Basecalling quality score mode (most often value) for reads below the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
+| Starting Active Pores | Initial number of pores available for sequencing based on the first mux scan |
+| Second Active Pore Count | Pores available for sequencing at the second mux scan if available in the run report |
+| Average Active Pores | Average number of pores available for sequencing over the course of the sequencing run, based on all mux scans provided in run report |
+| Active Pore AUC | Area Under the Curve (AUC) of pores available for sequencing calculated as the active pore total for all mux scans |
 | Start Run ISO Timestamp | |
 | Start Run Timestamp | |
 
