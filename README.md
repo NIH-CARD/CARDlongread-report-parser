@@ -1,4 +1,4 @@
-# NIA CARD Long Read Sequencing Report Parsing and Visualization Dashboard
+# NIA CARD Long Read Sequencing ONT JSON Run Report Parsing and Visualization Dashboard
 
 The NIA CARD Long-Read Sequencing group sequences some 30-50 human genomes per week from brain and blood genomic DNA using Oxford Nanopore Technologies (ONT) PromethION sequencers. Given these samples both often belong to larger cohorts (more than 30-50 samples), batch to batch variation is inevitable, and ONT has steadily modified sequencing library chemistry, flow cells, instrument software, and basecalling models, regular sequencing quality control is critical to examine how our sequencing efforts change over time. The included Python scripts automate the process of collecting key sequencing statistics from weekly and cohort-wide ONT sequencing runs and generate QC analytics as an Excel spreadsheet. They take run output MinKNOW run report JSON files as input and pull sequencing statistics from exact locations in each JSON hierarchical data structure. The scripts have been written to handle JSON files from MinKNOW version 25.05.14 and earlier, with validation on JSONs going back to MinKNOW version 22.05.7. Recent updates make it possible to incorporate platform QC flow cell checks from before sequencing into the QC visualization dashboard as well. Grouping functions to handle multiple input summary TSVs and color code by input name (e.g., cohort name) have been implemented (see usage below) and will be further documented with a tutorial example. Please report any bugs in the Issues tab to further improve the parser.
 
@@ -24,8 +24,10 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | Sample Rate (Hz) | Number of times current is measured per second for each channel in the flow cell |
 | Starting Median Translocation Speed | |
 | Average Median Translocation Speed Over Time | |
+| Weighted Average Median Translocation Speed Over Time | |
 | Starting Median Q Score | |
 | Average Median Q Score Over Time | |
+| Weighted Average Median Translocation Speed Over Time | |
 | Passed Bases (Gb) | |
 | Failed Bases (Gb) | |
 | Passed Reads (M) | |
