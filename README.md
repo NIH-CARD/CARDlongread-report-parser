@@ -43,8 +43,8 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | Average Pore Occupancy | |
 | Starting Adapter Sequencing Percentage | |
 | Average Adapter Sequencing Percentage | |
-| Start Run ISO Timestamp | |
-| Start Run Timestamp | |
+| Start Run ISO Timestamp | When sequencing run began, given in ISO 8601 date format (e.g., 2024-05-14T21:23:35.883780864Z) |
+| Start Run Timestamp | When sequencing run began, given in Unix epoch date format (e.g., 1715721816) |
 
 ## Dependencies
 
