@@ -73,18 +73,18 @@ io
 
 ```CARDlongread_extract_from_json.py``` takes a list of Oxford Nanopore sequencing report JSON files as inputs (or a directory containing all JSON files to analyze) and returns a table with the following fields per JSON, as described above:
 
-Experiment Name, Sample Name, Run Date, PROM ID, Flow Cell Position, Flow Cell ID, Flow Cell Product Code, Data output (Gb), Read Count (M), N50 (kb), MinKNOW Version, Sample Rate (Hz), Passed Modal Q Score, Failed Modal Q Score, Starting Active Pores, Second Pore Count, Start Run ISO Timestamp, Start Run Timestamp
+Experiment Name, Sample Name, Run Date, Sequencer ID, Flow Cell Position, Flow Cell ID, Flow Cell Product Code, Data output (Gb), Read Count (M), N50 (kb), MinKNOW Version, Sample Rate (Hz), Starting Median Translocation Speed, Average Median Translocation Speed Over Time, Weighted Average Median Translocation Speed Over Time, Starting Median Q Score, Average Median Q Score Over Time, Weighted Average Median Q Score Over Time, Passed Bases (Gb), Failed Bases (Gb), Passed Reads (M), Failed Reads (M), Percentage Passed Bases, Percentage Passed Reads, Passed Modal Q Score, Failed Modal Q Score, Starting Active Pores, Second Active Pore Count, Average Active Pores, Active Pore AUC, Average Active Pore Change Per Mux Scan, Starting Pore Occupancy, Average Pore Occupancy, Starting Adapter Sequencing Percentage, Average Adapter Sequencing Percentage, Start Run ISO Timestamp, Start Run Timestamp
 
 N50 (kb) refers to the read N50 for estimated bases read lengths (not basecalled bases). N50 extraction has been patched to extract this field from the corresponding estimated bases read length histogram in JSONs from MinKNOW versions older and newer than 24.11.11.
 
 Below is sample output from the script:
 ```
-Experiment Name	Sample Name	Run Date	PROM ID	Flow Cell Position	Flow Cell ID	Flow Cell Product Code	Data output (Gb)	Read Count (M)	N50 (kb)	MinKNOW Version	Sample Rate (Hz)	Passed Modal Q Score	Failed Modal Q Score	Starting Active Pores	Second Pore Count	Start Run ISO Timestamp	Start Run Timestamp
-Chile_404	Chile_404	2024-05-14	PC24B302	2D	PAW33034	FLO-PRO114M	141.083	7.345	23.39	24.02.10	5000	NA	NA	7644	7295	2024-05-14T21:23:35.883780864Z	1715721816
-Chile_406	Chile_406	2024-05-01	PC24B302	2E	PAW73369	FLO-PRO114M	131.699	7.426	22.79	24.02.10	5000	NA	NA	7431	7118	2024-05-01T19:49:27.062103580Z	1714592967
-Chile_509	Chile_509	2024-05-14	PC24B302	2F	PAW61512	FLO-PRO114M	117.861	7.947	17.12	24.02.10	5000	NA	NA	7604	7028	2024-05-14T21:28:27.860263815Z	1715722108
-Chile_511	Chile_511	2024-05-08	PC24B302	2D	PAW71368	FLO-PRO114M	133.097	7.548	20.69	24.02.10	5000	NA	NA	7370	6972	2024-05-08T20:46:57.642743302Z	1715201218
-Chile_516	Chile_516	2024-05-01	PC24B302	2D	PAW71977	FLO-PRO114M	129.544	6.625	23.63	24.02.10	5000	NA	NA	7837	7424	2024-05-01T19:47:57.769730497Z	1714592878
+Experiment Name	Sample Name	Run Date	Sequencer ID	Flow Cell Position	Flow Cell ID	Flow Cell Product Code	Data output (Gb)	Read Count (M)	N50 (kb)	MinKNOW Version	Sample Rate (Hz)	Starting Median Translocation Speed	Average Median Translocation Speed Over Time	Weighted Average Median Translocation Speed Over Time	Starting Median Q Score	Average Median Q Score Over Time	Weighted Average Median Q Score Over Time	Passed Bases (Gb)	Failed Bases (Gb)	Passed Reads (M)	Failed Reads (M)	Percentage Passed Bases	Percentage Passed Reads	Passed Modal Q Score	Failed Modal Q Score	Starting Active Pores	Second Active Pore Count	Average Active Pores	Active Pore AUC	Average Active Pore Change Per Mux Scan	Starting Pore Occupancy	Average Pore Occupancy	Starting Adapter Sequencing Percentage	Average Adapter Sequencing Percentage	Start Run ISO Timestamp	Start Run Timestamp
+Chile_404	Chile_404	2024-05-14	PC24B302	2D	PAW33034	FLO-PRO114M	141.083	7.345	23.39	24.02.10	5000	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	7644	7295	4312.5	198375	133.556	97.306	97.243	0.154	0.111	2024-05-14T21:23:35.883780864Z	1715721816
+Chile_406	Chile_406	2024-05-01	PC24B302	2E	PAW73369	FLO-PRO114M	131.699	7.426	22.79	24.02.10	5000	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	7431	7118	4108.0	188968	127.622	97.547	97.305	0.087	0.081	2024-05-01T19:49:27.062103580Z	1714592967
+Chile_509	Chile_509	2024-05-14	PC24B302	2F	PAW61512	FLO-PRO114M	117.861	7.947	17.12	24.02.10	5000	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	7604	7028	3559.674	163745	138.4	97.486	97.088	0.186	0.137	2024-05-14T21:28:27.860263815Z	1715722108
+Chile_511	Chile_511	2024-05-08	PC24B302	2D	PAW71368	FLO-PRO114M	133.097	7.548	20.69	24.02.10	5000	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	7370	6972	4125.326	189765	123.111	97.833	97.86	0.102	0.088	2024-05-08T20:46:57.642743302Z	1715201218
+Chile_516	Chile_516	2024-05-01	PC24B302	2D	PAW71977	FLO-PRO114M	129.544	6.625	23.63	24.02.10	5000	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	7837	7424	4021.457	184987	143.467	97.207	96.481	0.121	0.119	2024-05-01T19:47:57.769730497Z	1714592878
 ```
 
 The file list should contain paths to each report on each line, like so:
