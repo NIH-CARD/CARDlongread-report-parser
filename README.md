@@ -22,6 +22,10 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | N50 (kb) | Read length at which 50% of total bases are included, ranking reads from shortest to longest; reported for estimated bases, not basecalled bases, as shown in MinKNOW HTML report |
 | MinKNOW Version | Version of MinKNOW software used to sequence run (e.g., 25.05.14) |
 | Sample Rate (Hz) | Number of times current is measured per second for each channel in the flow cell |
+| Starting Median Translocation Speed | |
+| Average Median Translocation Speed Over Time | |
+| Starting Median Q Score | |
+| Average Median Q Score Over Time | |
 | Passed Bases (Gb) | |
 | Failed Bases (Gb) | |
 | Passed Reads (M) | |
