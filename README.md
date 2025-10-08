@@ -17,7 +17,7 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | Flow Cell Position | Alphanumeric designation for position in which sequencing run flow cell was inserted into the sequencer (e.g., 1A, 2D, 6F) |
 | Flow Cell ID | Eight digit alphanumeric serial number identifying flow cell (e.g., PAW33034) |
 | Flow Cell Product Code | Identification of flow cell type used for sequencing (e.g., FLO-PRO114M) |
-| Data output (Gb) | Amount of sequencing data generated within run in gigabases |
+| Data output (Gb) | Amount of sequencing data generated within run in gigabases; reported for estimated bases, not basecalled bases, as shown in MinKNOW HTML report |
 | Read Count (M) | Total number of reads sequenced during run |
 | N50 (kb) | Read length at which 50% of total bases are included, ranking reads from shortest to longest; reported for estimated bases, not basecalled bases, as shown in MinKNOW HTML report |
 | MinKNOW Version | Version of MinKNOW software used to sequence run (e.g., 25.05.14) |
