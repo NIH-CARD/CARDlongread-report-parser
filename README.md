@@ -18,7 +18,7 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | Flow Cell ID | Eight digit alphanumeric serial number identifying flow cell (e.g., PAW33034) |
 | Flow Cell Product Code | Identification of flow cell type used for sequencing (e.g., FLO-PRO114M) |
 | Data output (Gb) | Amount of sequencing data generated within run in gigabases; reported for estimated bases, not basecalled bases, as shown in MinKNOW HTML report |
-| Read Count (M) | Total number of reads sequenced during run |
+| Read Count (M) | Total number of reads sequenced during run in millions |
 | N50 (kb) | Read length at which 50% of total bases are included, ranking reads from shortest to longest; reported for estimated bases, not basecalled bases, as shown in MinKNOW HTML report |
 | MinKNOW Version | Version of MinKNOW software used to sequence run (e.g., 25.05.14) |
 | Sample Rate (Hz) | Number of times current is measured per second for each channel in the flow cell |
@@ -30,8 +30,8 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | Weighted Average Median Translocation Speed Over Time | Average median basecalling quality (Q) score of reads collected over the course of the run, weighted by the number of reads at each time point |
 | Passed Bases (Gb) | Total gigabases (Gb) of reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Failed Bases (Gb) | Total gigabases (Gb) of reads below the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
-| Passed Reads (M) | Total number of reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
-| Failed Reads (M) | Total number of reads below the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
+| Passed Reads (M) | Total number of reads in millions above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
+| Failed Reads (M) | Total number of reads in millions below the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Percentage Passed Bases | Percentage of total bases above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Percentage Passed Reads | Percentage of total reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Passed Modal Q Score | Basecalling quality score mode (most often value) for reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
