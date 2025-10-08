@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # long read sequencing report JSON parser
-# output fields are Experiment Name, Sample Name, Run Date, PROM ID, Flow Cell Position, Flow Cell ID, Flow Cell Product Code, Data output (Gb), Read Count (M), N50 (kb), MinKNOW Version, Sample Rate (Hz), Passed Modal Q Score, Failed Modal Q Score, Starting Active Pores, Second Pore Count, Start Run ISO Timestamp, Start Run Timestamp
+# old output fields are Experiment Name, Sample Name, Run Date, PROM ID, Flow Cell Position, Flow Cell ID, Flow Cell Product Code, Data output (Gb), Read Count (M), N50 (kb), MinKNOW Version, Sample Rate (Hz), Passed Modal Q Score, Failed Modal Q Score, Starting Active Pores, Second Pore Count, Start Run ISO Timestamp, Start Run Timestamp
+# new (after 10/8/25) output fields are Experiment Name, Sample Name, Run Date, Sequencer ID, Flow Cell Position, Flow Cell ID, Flow Cell Product Code, Data output (Gb), Read Count (M), N50 (kb), MinKNOW Version, Sample Rate (Hz), Starting Median Translocation Speed, Average Median Translocation Speed Over Time, Weighted Average Median Translocation Speed Over Time, Starting Median Q Score, Average Median Q Score Over Time, Weighted Average Median Q Score Over Time, Passed Bases (Gb), Failed Bases (Gb), Passed Reads (M), Failed Reads (M), Percentage Passed Bases, Percentage Passed Reads, Passed Modal Q Score, Failed Modal Q Score, Starting Active Pores, Second Active Pore Count, Average Active Pores, Active Pore AUC, Average Active Pore Change Per Mux Scan, Starting Pore Occupancy, Average Pore Occupancy, Starting Adapter Sequencing Percentage, Average Adapter Sequencing Percentage, Start Run ISO Timestamp, Start Run Timestamp
 # look for Q score in the future and possibly also total reads
 import glob
 # import json
