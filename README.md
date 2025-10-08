@@ -6,7 +6,7 @@ Compared to downstream nanopore QC tools (e.g., NanoComp, NanoPlot), this raw QC
 
 ## Quality control metrics tracked and parser output fields
 
-The following quality control metrics are extracted from each MinKNOW raw QC report JSON and output in order as a table used for further QC dashboard generation. When these are not found in a JSON, they are listed in the raw QC output table as 'NA'.
+The following quality control metrics are extracted from each MinKNOW raw QC report JSON and output in order as a table used for further QC dashboard generation. When these are not found in a JSON, they are listed in the raw QC output table as 'NA'. Numeric values are rounded to three decimal places with the exception of read N50 (kb), which is rounded to two decimal places.
 
 | Metric | Definition |
 | ------ | ---------- |
