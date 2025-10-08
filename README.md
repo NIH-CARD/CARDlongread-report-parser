@@ -22,7 +22,12 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | N50 (kb) | |
 | MinKNOW Version | Version of MinKNOW software used to sequence run (e.g., 25.05.14) |
 | Sample Rate (Hz) | Number of times current is measured per second for each channel in the flow cell |
-
+| Passed Modal Q Score | |
+| Failed Modal Q Score | |
+| Starting Active Pores | |
+| Second Pore Count | |
+| Start Run ISO Timestamp | |
+| Start Run Timestamp | |
 
 ## Dependencies
 
