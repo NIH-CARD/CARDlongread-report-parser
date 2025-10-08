@@ -30,10 +30,10 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | Weighted Average Median Translocation Speed Over Time | |
 | Passed Bases (Gb) | Total gigabases (Gb) of reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Failed Bases (Gb) | Total gigabases (Gb) of reads below the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
-| Passed Reads (M) | |
-| Failed Reads (M) | |
-| Percentage Passed Bases | |
-| Percentage Passed Reads | |
+| Passed Reads (M) | Total number of reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
+| Failed Reads (M) | Total number of reads below the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
+| Percentage Passed Bases | Percentage of total bases above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
+| Percentage Passed Reads | Percentage of total reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Passed Modal Q Score | Basecalling quality score mode (most often value) for reads above the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Failed Modal Q Score | Basecalling quality score mode (most often value) for reads below the per read average Q score filter (Q8 for fast, Q9 for high-accuracy, and Q10 for super-accurate basecalling) |
 | Starting Active Pores | Initial number of pores available for sequencing based on the first mux scan |
