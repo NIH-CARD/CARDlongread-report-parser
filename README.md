@@ -38,7 +38,7 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | Second Active Pore Count | Pores available for sequencing at the second mux scan if available in the run report |
 | Average Active Pores | Average number of pores available for sequencing over the course of the sequencing run, based on all mux scans provided in run report |
 | Active Pore AUC | Area Under the Curve (AUC) of pores available for sequencing calculated as the active pore total for all mux scans |
-| Average Active Pore Change Per Mux Scan | Average number of pores available for sequencing lost or gained per mux scan (run every 90 minutes by default) |
+| Average Active Pore Change Per Mux Scan | Average number of pores available for sequencing lost or gained per mux scan (run every 90 minutes by default), calculated from consecutive mux scan results (e.g., mux scan active pore count - previous mux scan active pore count) |
 | Starting Pore Occupancy | |
 | Average Pore Occupancy | |
 | Starting Adapter Sequencing Percentage | |
