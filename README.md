@@ -41,10 +41,10 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 | Average Active Pores | Average number of pores available for sequencing over the course of the sequencing run, based on all mux scans provided in run report |
 | Active Pore AUC | Area Under the Curve (AUC) of pores available for sequencing calculated as the active pore total for all mux scans |
 | Average Active Pore Change Per Mux Scan | Average number of pores available for sequencing lost or gained per mux scan (run every 90 minutes by default), calculated from consecutive mux scan results (e.g., mux scan active pore count - previous mux scan active pore count) |
-| Starting Pore Occupancy | |
-| Average Pore Occupancy | |
-| Starting Adapter Sequencing Percentage | |
-| Average Adapter Sequencing Percentage | |
+| Starting Pore Occupancy | Initial percentage of total pores available for sequencing that are in an actively sequencing state (strand or adapter); further defined and described here: https://nanoporetech.com/support/flow-cells/general-flow-cell-FAQs/pore-occupancy |
+| Average Pore Occupancy | Average percentage of total pores available for sequencing that are in an actively sequencing state (strand or adapter) over the course of the run |
+| Starting Adapter Sequencing Percentage | Initial percentage of actively sequencing pores that are sequencing adapter rather than sample DNA (strand) |
+| Average Adapter Sequencing Percentage | Average percentage of actively sequencing pores that are sequencing adapter rather than sample DNA (strand) over the course of the run |
 | Start Run ISO Timestamp | When sequencing run began, given in ISO 8601 date format (e.g., 2024-05-14T21:23:35.883780864Z) |
 | Start Run Timestamp | When sequencing run began, given in Unix epoch date format (e.g., 1715721816) |
 
