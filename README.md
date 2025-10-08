@@ -10,9 +10,19 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 
 | Metric | Definition |
 | ------ | ---------- |
-| Experiment Name | |
+| Experiment Name | Name of experiment as entered into MinKNOW before initiating the sequencing run |
 | Sample Name | |
-| Run Date | |
+| Run Date | The month, day, and year the sequencing run was conducted |
+| PROM ID | Serial number for the instrument on which the sequencing run was conducted |
+| Flow Cell Position | |
+| Flow Cell ID | |
+| Flow Cell Product Code | |
+| Data output (Gb) | |
+| Read Count (M) | |
+| N50 (kb) | |
+| MinKNOW Version | Version of MinKNOW software used to sequence run (e.g., 25.05.14) |
+| Sample Rate (Hz) | Number of times current is measured per second for each channel in the flow cell |
+
 
 ## Dependencies
 
