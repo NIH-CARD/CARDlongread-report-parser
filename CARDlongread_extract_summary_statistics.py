@@ -797,9 +797,9 @@ elif grouped is True:
     for idx, i in enumerate(results.names):
         # run above summary statistics function
         if results.platform_qc is not None:
-            (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],longread_extract_with_platform_qc_and_diff[longread_extract_with_platform_qc_and_diff['Group']==i],longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i])
+            (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_sample_rate_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],longread_extract_with_platform_qc_and_diff[longread_extract_with_platform_qc_and_diff['Group']==i],longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i])
         else:
-            (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],None,longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i])
+            (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_sample_rate_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract[longread_extract['Group'] == i],None,longread_extract_flow_cells_and_output_per_experiment[longread_extract_flow_cells_and_output_per_experiment['Group']==i],longread_extract_output_per_flow_cell[longread_extract_output_per_flow_cell['Group']==i])
         # write data frames with a row between each
         # write combined summary stats
         start_row = 0
