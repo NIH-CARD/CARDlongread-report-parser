@@ -50,7 +50,7 @@ The following quality control metrics are extracted from each MinKNOW raw QC rep
 
 ## Dependencies
 
-The Python scripts were tested and developed with the following dependency modules (and respective versions where applicable):  
+The Python scripts were tested and developed with the following dependency modules (and respective versions where applicable). We have recently substituted the default Python JSON handling library json for the faster, more correct, Rust-enhanced orjson (https://github.com/ijl/orjson) library, leading to a 40% speed boost in preliminary testing on JSONs exported from MinKNOW 24.11.11 and 25.05.14.
 
 Python 3.10.8  
 numpy 1.26.4  
