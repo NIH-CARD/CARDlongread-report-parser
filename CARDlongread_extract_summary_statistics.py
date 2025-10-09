@@ -835,6 +835,38 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
         make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run data output plot',None,90,results.plot_title,True)
         make_violinswarmplot_worksheet(longread_extract,"Read Count (M)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run read count plot',"Read Count (million reads)",None,results.plot_title,True)
         make_violinswarmplot_worksheet(longread_extract,"Starting Active Pores",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting active pores plot',"Starting active pores",6500,results.plot_title,True)
+        # new fields to show
+        # average active pores
+        make_violinswarmplot_worksheet(longread_extract,"Average Active Pores",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Average active pores plot',"Average active pores",None,results.plot_title,True)
+        # active pore AUC
+        make_violinswarmplot_worksheet(longread_extract,"Active Pore AUC",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Active pore AUC plot',"Active pore AUC",None,results.plot_title,True)
+        # starting pore occupancy
+        make_violinswarmplot_worksheet(longread_extract,"Starting Pore Occupancy",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting pore occupancy plot',"Starting pore occupancy",None,results.plot_title,True)
+        # average pore occupancy
+        make_violinswarmplot_worksheet(longread_extract,"Average Pore Occupancy",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Average pore occupancy plot',"Average pore occupancy",None,results.plot_title,True)
+        # hard coded Q score cutoffs of 8 based on fast basecalling
+        # check if these values are even present using count (find how many non-NA values)
+        if (longread_extract['Passed Modal Q Score'].count()>0):
+            # passed modal Q score
+            make_violinswarmplot_worksheet(longread_extract,"Passed Modal Q Score",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Passed modal Q score plot',"Passed modal Q score",8,results.plot_title,True)
+        if (longread_extract['Failed Modal Q Score'].count()>0):
+            # failed modal Q score
+            make_violinswarmplot_worksheet(longread_extract,"Failed Modal Q Score",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Failed modal Q score plot',"Failed modal Q score",8,results.plot_title,True)
+        if (longread_extract['Starting Median Translocation Speed'].count()>0):
+            # starting translocation speed
+            make_violinswarmplot_worksheet(longread_extract,"Starting Median Translocation Speed",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting transloc speed plot',"Starting translocation speed (bp/sec)",400,results.plot_title,True)
+        if (longread_extract['Starting Median Q Score'].count()>0):
+            # starting median Q score
+            make_violinswarmplot_worksheet(longread_extract,"Starting Median Q Score",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting median Q score plot',"Starting median Q score",8,results.plot_title,True)
+        if (longread_extract['Passed Bases (Gb)'].count()>0):
+            # passed bases
+            make_violinswarmplot_worksheet(longread_extract,"Passed Bases (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Passed bases plot',"Passed bases (Gb)",90,results.plot_title,True)
+        if (longread_extract['Failed Bases (Gb)'].count()>0):
+            # failed bases
+            make_violinswarmplot_worksheet(longread_extract,"Failed Bases (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Failed bases plot',"Failed bases (Gb)",None,results.plot_title,True)
+        if (longread_extract['Percentage Passed Bases'].count()>0):
+            # percentage passed bases
+            make_violinswarmplot_worksheet(longread_extract,"Percentage Passed Bases",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Percentage passed bases plot',"Percentage of bases passing filter",None,results.plot_title,True)
         # no topups in next three plots
         make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Flow Cells",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Flow cells per experiment plot',"Flow cells",None,results.plot_title)
         make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Total output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Output per experiment plot',None,90,results.plot_title)
@@ -855,6 +887,38 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
         make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run data output plot',None,None,results.plot_title,True)
         make_violinswarmplot_worksheet(longread_extract,"Read Count (M)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run read count plot',"Read Count (million reads)",None,results.plot_title,True)
         make_violinswarmplot_worksheet(longread_extract,"Starting Active Pores",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting active pores plot',"Starting active pores",None,results.plot_title,True)
+        # new fields to show
+        # average active pores
+        make_violinswarmplot_worksheet(longread_extract,"Average Active Pores",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Average active pores plot',"Average active pores",None,results.plot_title,True)
+        # active pore AUC
+        make_violinswarmplot_worksheet(longread_extract,"Active Pore AUC",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Active pore AUC plot',"Active pore AUC",None,results.plot_title,True)
+        # starting pore occupancy
+        make_violinswarmplot_worksheet(longread_extract,"Starting Pore Occupancy",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting pore occupancy plot',"Starting pore occupancy",None,results.plot_title,True)
+        # average pore occupancy
+        make_violinswarmplot_worksheet(longread_extract,"Average Pore Occupancy",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Average pore occupancy plot',"Average pore occupancy",None,results.plot_title,True)
+        # hard coded Q score cutoffs of 8 based on fast basecalling
+        # check if these values are even present using count (find how many non-NA values)
+        if (longread_extract['Passed Modal Q Score'].count()>0):
+            # passed modal Q score
+            make_violinswarmplot_worksheet(longread_extract,"Passed Modal Q Score",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Passed modal Q score plot',"Passed modal Q score",None,results.plot_title,True)
+        if (longread_extract['Failed Modal Q Score'].count()>0):
+            # failed modal Q score
+            make_violinswarmplot_worksheet(longread_extract,"Failed Modal Q Score",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Failed modal Q score plot',"Failed modal Q score",None,results.plot_title,True)
+        if (longread_extract['Starting Median Translocation Speed'].count()>0):
+            # starting translocation speed
+            make_violinswarmplot_worksheet(longread_extract,"Starting Median Translocation Speed",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting transloc speed plot',"Starting translocation speed (bp/sec)",None,results.plot_title,True)
+        if (longread_extract['Starting Median Q Score'].count()>0):
+            # starting median Q score
+            make_violinswarmplot_worksheet(longread_extract,"Starting Median Q Score",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting median Q score plot',"Starting median Q score",None,results.plot_title,True)
+        if (longread_extract['Passed Bases (Gb)'].count()>0):
+            # passed bases
+            make_violinswarmplot_worksheet(longread_extract,"Passed Bases (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Passed bases plot',"Passed bases (Gb)",None,results.plot_title,True)
+        if (longread_extract['Failed Bases (Gb)'].count()>0):
+            # failed bases
+            make_violinswarmplot_worksheet(longread_extract,"Failed Bases (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Failed bases plot',"Failed bases (Gb)",None,results.plot_title,True)
+        if (longread_extract['Percentage Passed Bases'].count()>0):
+            # percentage passed bases
+            make_violinswarmplot_worksheet(longread_extract,"Percentage Passed Bases",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Percentage passed bases plot',"Percentage of bases passing filter",None,results.plot_title,True)
         # no topups in next three plots
         make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Flow Cells",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Flow cells per experiment plot',"Flow cells",None,results.plot_title)
         make_violinswarmplot_worksheet(longread_extract_flow_cells_and_output_per_experiment,"Total output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Output per experiment plot',None,None,results.plot_title)
