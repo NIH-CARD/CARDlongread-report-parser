@@ -34,14 +34,32 @@ def get_summary_statistics(column):
 	# fill summary statistics class with each statistic
     # note that the line below should be used to give the total run count (across experiments and samples). Not useful with unique experiments, samples, etc.
     # as in flow cells per unique sample
-    summary_statistics.total = len(column)
-    summary_statistics.min = min(column)
-    summary_statistics.max = max(column)
-    summary_statistics.range = summary_statistics.max - summary_statistics.min
-    summary_statistics.mean = statistics.mean(column)
-    summary_statistics.median = statistics.median(column)
-    summary_statistics.mode = statistics.mode(column)
-    summary_statistics.stdev = statistics.stdev(column)
+    # later altered total to exclude NA values
+    # summary_statistics.total = len(column)
+    summary_statistics.total = column.count()
+    # only calculate statistics if at least one non-NA element
+    if summary_statistics.total > 0:
+        # summary_statistics.min = min(column)
+        summary_statistics.min = column.min()
+        # summary_statistics.max = max(column)
+        summary_statistics.max = column.max()
+        summary_statistics.range = summary_statistics.max - summary_statistics.min
+        # drop nas before calculating below if necessary
+        # summary_statistics.mean = statistics.mean(column)
+        # replaced statistics library calls with numpy calls
+        # round to 3 decimal places
+        summary_statistics.mean = round(np.nanmean(column),3)
+        summary_statistics.median = round(np.nanmedian(column),3)
+        summary_statistics.mode = round(statistics.mode(column),3)
+        summary_statistics.stdev = round(np.nanstd(column),3)
+    else:
+        summary_statistics.min = np.nan
+        summary_statistics.max = np.nan
+        summary_statistics.range = np.nan
+        summary_statistics.mean = np.nan
+        summary_statistics.median = np.nan
+        summary_statistics.mode = np.nan
+        summary_statistics.stdev = np.nan
     # return data structure with each summary statistic as an attribute
     return summary_statistics
     
@@ -118,6 +136,18 @@ def get_minknow_version_dist(column):
         minknow_version_dist_df['Frequency'][i] = list(column).count(i)
     # return data frame with versions and counts per version
     return minknow_version_dist_df
+    
+# get sample rate distribution
+def get_sample_rate_dist(column):
+    # unique sample rates
+    unique_sample_rates = np.unique(column)
+    # create sample_rate_dist_df data frame
+    sample_rate_dist_df = pd.DataFrame({'Sample Rate (Hz)' : unique_sample_rates}, index=unique_sample_rates, columns=['Sample Rate (Hz)', 'Frequency'])
+    # count numbers of each in dataset
+    for i in unique_sample_rates:
+        sample_rate_dist_df.loc[i, 'Frequency'] = list(column).count(i)
+    # return data frame with versions and counts per version
+    return sample_rate_dist_df
     
 # make summary statistic data frame
 def make_summary_statistics_data_frame(summary_statistics_set, property_names):
@@ -582,25 +612,134 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
     output_per_flow_cell_summary_stats = get_summary_statistics(longread_extract_output_per_flow_cell['Flow cell output (Gb)'])
     # total output per experiment
     output_per_experiment_summary_stats = get_summary_statistics(longread_extract_flow_cells_and_output_per_experiment['Total output (Gb)'])
-
+    # additional summary stats added 10/8/2025
+    # active pore AUC
+    active_pore_auc_summary_stats = get_summary_statistics(longread_extract['Active Pore AUC'])
+    # average active pores
+    average_active_pores_summary_stats = get_summary_statistics(longread_extract['Average Active Pores'])
+    # starting pore occupancy
+    starting_pore_occupancy_summary_stats = get_summary_statistics(longread_extract['Starting Pore Occupancy'])
+    # average pore occupancy
+    average_pore_occupancy_summary_stats = get_summary_statistics(longread_extract['Average Pore Occupancy'])
+    # passed modal Q score
+    passed_modal_q_score_summary_stats = get_summary_statistics(longread_extract['Passed Modal Q Score'])
+    # failed modal Q score
+    failed_modal_q_score_summary_stats = get_summary_statistics(longread_extract['Failed Modal Q Score'])
+    # starting translocation speed
+    starting_translocation_speed_summary_stats = get_summary_statistics(longread_extract['Starting Median Translocation Speed'])
+    # average translocation speed
+    average_translocation_speed_summary_stats = get_summary_statistics(longread_extract['Average Median Translocation Speed Over Time'])
+    # starting median Q score
+    starting_median_q_score_summary_stats = get_summary_statistics(longread_extract['Starting Median Q Score'])
+    # average median Q score
+    average_median_q_score_summary_stats = get_summary_statistics(longread_extract['Average Median Q Score Over Time'])
+    # passed bases
+    passed_bases_summary_stats = get_summary_statistics(longread_extract['Passed Bases (Gb)'])
+    # failed bases
+    failed_bases_summary_stats = get_summary_statistics(longread_extract['Failed Bases (Gb)'])
+    # percentage passed bases
+    percentage_passed_bases_summary_stats = get_summary_statistics(longread_extract['Percentage Passed Bases'])
+    
     # combine summary stats into one list
-    combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,read_count_summary_stats,starting_active_pores_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
+    combined_summary_stats = [read_N50_summary_stats,
+    sequence_output_summary_stats,
+    read_count_summary_stats,
+    starting_active_pores_summary_stats,
+    average_active_pores_summary_stats,
+    flow_cells_per_experiment_summary_stats,
+    output_per_flow_cell_summary_stats,
+    output_per_experiment_summary_stats,
+    active_pore_auc_summary_stats,
+    starting_pore_occupancy_summary_stats,
+    average_pore_occupancy_summary_stats,
+    passed_modal_q_score_summary_stats,
+    failed_modal_q_score_summary_stats,
+    starting_translocation_speed_summary_stats,
+    average_translocation_speed_summary_stats,
+    starting_median_q_score_summary_stats,
+    average_median_q_score_summary_stats,
+    passed_bases_summary_stats,
+    failed_bases_summary_stats,
+    percentage_passed_bases_summary_stats]
 
     # make data frame from combined_summary_stats
-    combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Run read count (millions)','Starting active pores','Flow cells per experiment','Flow cell output (Gb)', 'Total experiment output (Gb)']
+    combined_property_names = ['Read N50 (kb)',
+    'Run data output (Gb)',
+    'Run read count (millions)',
+    'Starting active pores',
+    'Average active pores',
+    'Flow cells per experiment',
+    'Flow cell output (Gb)', 
+    'Total experiment output (Gb)',
+    'Active pore AUC',
+    'Starting pore occupancy',
+    'Average pore occupancy',
+    'Passed modal Q score',
+    'Failed modal Q score',
+    'Starting translocation speed',
+    'Average translocation speed',
+    'Starting median Q score',
+    'Average median Q score',
+    'Passed bases (Gb)',
+    'Failed bases (Gb)',
+    'Percentage passed bases']
     combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
 
     # include platform QC active pores/pore difference information where applicable
     if longread_extract_with_platform_qc_and_diff is not None:
         # combine summary stats into one list
-        combined_summary_stats = [read_N50_summary_stats,sequence_output_summary_stats,read_count_summary_stats,starting_active_pores_summary_stats,platform_qc_summary_stats,pore_difference_qc_summary_stats,flow_cells_per_experiment_summary_stats,output_per_flow_cell_summary_stats,output_per_experiment_summary_stats]
+        combined_summary_stats = [read_N50_summary_stats,
+        sequence_output_summary_stats,
+        read_count_summary_stats,
+        starting_active_pores_summary_stats,
+        average_active_pores_summary_stats,
+        platform_qc_summary_stats,
+        pore_difference_qc_summary_stats,
+        flow_cells_per_experiment_summary_stats,
+        output_per_flow_cell_summary_stats,
+        output_per_experiment_summary_stats,
+        active_pore_auc_summary_stats,
+        starting_pore_occupancy_summary_stats,
+        average_pore_occupancy_summary_stats,
+        passed_modal_q_score_summary_stats,
+        failed_modal_q_score_summary_stats,
+        starting_translocation_speed_summary_stats,
+        average_translocation_speed_summary_stats,
+        starting_median_q_score_summary_stats,
+        average_median_q_score_summary_stats,
+        passed_bases_summary_stats,
+        failed_bases_summary_stats,
+        percentage_passed_bases_summary_stats]
         # make data frame from combined_summary_stats
-        combined_property_names = ['Read N50 (kb)','Run data output (Gb)','Run read count (millions)','Starting active pores','Platform QC active pores','Pore difference','Flow cells per experiment','Flow cell output (Gb)','Total experiment output (Gb)']
+        combined_property_names = ['Read N50 (kb)',
+        'Run data output (Gb)',
+        'Run read count (millions)',
+        'Starting active pores',
+        'Average active pores',
+        'Platform QC active pores',
+        'Pore difference',
+        'Flow cells per experiment',
+        'Flow cell output (Gb)',
+        'Total experiment output (Gb)',
+        'Active pore AUC',
+        'Starting pore occupancy',
+        'Average pore occupancy',
+        'Passed modal Q score',
+        'Failed modal Q score',
+        'Starting translocation speed',
+        'Average translocation speed',
+        'Starting median Q score',
+        'Average median Q score',
+        'Passed bases (Gb)',
+        'Failed bases (Gb)',
+        'Percentage passed bases']
         combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
     # minknow version distribution
     longread_extract_minknow_version_dist = get_minknow_version_dist(longread_extract['MinKNOW Version'])
+    # sampling rate distribution
+    longread_extract_sample_rate_dist = get_sample_rate_dist(longread_extract['Sample Rate (Hz)'])
     # stop functionalizing here
-    return(combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)
+    return(combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_sample_rate_dist,longread_extract_flow_cells_per_experiment_dist)
 
 # save data frames as tab-delimited file (.tsv)
 # Example data structure
@@ -624,9 +763,9 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
 if grouped is False:
     # run above summary statistics function
     if results.platform_qc is not None:
-        (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell) 
+        (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_sample_rate_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell) 
     else:
-        (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,None,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell)
+        (combined_summary_stats_df,longread_extract_minknow_version_dist,longread_extract_sample_rate_dist,longread_extract_flow_cells_per_experiment_dist)=longread_platform_qc_summary_statistics(longread_extract,None,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell)
     # output data frames and figures to excel spreadsheet
     writer = pd.ExcelWriter(results.output_file)
     # write data frames with a row between each
@@ -640,6 +779,9 @@ if grouped is False:
     # write minknow version distribution
     start_row = start_row + len(longread_extract_flow_cells_per_experiment_dist) + 2
     longread_extract_minknow_version_dist.to_excel(writer, startrow=start_row, index=False, sheet_name='Summary statistics report')
+    # write sample rate distribution
+    start_row = start_row + len(longread_extract_minknow_version_dist) + 2
+    longread_extract_sample_rate_dist.to_excel(writer, startrow=start_row, index=False, sheet_name='Summary statistics report')
     # write flow cells and output per flow cell on another worksheet
     longread_extract_output_per_flow_cell.to_excel(writer, index=False, sheet_name='Output per flow cell ID')
     # write flow cells and output per unique experiment on another worksheet
