@@ -626,7 +626,7 @@ if results.platform_qc is not None:
     # output table with platform QC stats joined if specified in options
     if results.output_table_with_platform_qc is not None:
         # output to TSV with indexes excluded
-        longread_extract.to_csv(results.output_table_with_platform_qc,index=False,sep="\t")       
+        longread_extract_with_platform_qc_and_diff.to_csv(results.output_table_with_platform_qc,index=False,sep="\t")       
 
 # functionalize all below to run through on separate groups
 def longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell):
