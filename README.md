@@ -126,7 +126,7 @@ Top up runs are labeled with the suffix _topup and recovery runs are labeled wit
 Example data visualizations corresponding to data snippets shown earlier:
 <br></br>
 Total per flow cell output violin plot with embedded box plot, displayed data points, and 30x/90Gbp cutoff line:
-<!-- img width="720" alt="image" src="https://github.com/user-attachments/assets/f576c444-65c7-4c66-9a1a-a6a7ebdfa6e4" -->
+[ #img width="720" alt="image" src="https://github.com/user-attachments/assets/f576c444-65c7-4c66-9a1a-a6a7ebdfa6e4" ]
 <br></br>
 <img width="720" alt="image" src="https://github.com/user-attachments/assets/3ff9c40a-c584-4c3f-9476-b945cee64e23" />
 <br></br>
