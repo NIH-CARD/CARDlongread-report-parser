@@ -205,7 +205,7 @@ Per run starting active pores violin plot with embedded box plot and displayed d
 <br></br>
 Per run data output vs. starting active pore scatter plot with run type annotated by point color and cutoffs provided for starting active pores (red - less than 5000 active pores for ONT warranty return, green - 6500 active pores or higher for internal QC) and data output (gray - desired output of 30X human genome coverage or 90 Gbp sequencing output).
 <br></br>
-<img width="720" alt="image" src="https://github.com/user-attachments/assets/6cf2041b-429f-45ed-b759-658480fdc943">
+<img width="720" alt="image" src="https://github.com/user-attachments/assets/7d07433a-b88c-4e6c-bac1-e6cc4ae86aea" />
 <br></br>
 Per run data output vs. difference between starting active pores (after sequencing) and platform QC active pores at the initial flow cell check with run type annotated by point color and cutoff provided for data output (gray - desired output of 30X human genome coverage or 90 Gbp sequencing output).
 <br></br>
