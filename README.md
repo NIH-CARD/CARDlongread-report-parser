@@ -113,13 +113,13 @@ optional arguments:
 
 Sequencing runs are typically conducted over 72 hours, with one 20 fmol library load every 24 hours.
 
-A standard run corresponds to a sequencing run that went through three full loads successfully (one every 24 hours), while interrupted refers to the first part of a full sequencing run where the flow cell was later reconnected at a distinct position (e.g., 1E to 3C) or temporarily disconnected and reconnected at the same position (e.g., 1E). These run types were both designated as initial runs in past versions of the dashboard.
+A **standard run** corresponds to a sequencing run that went through three full loads successfully (one every 24 hours), while **interrupted** refers to the first part of a full sequencing run where the flow cell was later reconnected at a distinct position (e.g., 1E to 3C) or temporarily disconnected and reconnected at the same position (e.g., 1E). These run types were both designated as initial runs in past versions of the dashboard.
 
-A reconnection is the second part of a run after a flow cell is disconnected and reconnected, as described above. Reconnections are identified from lines in the JSON parser output TSV that have the same sample name and same flow cell ID.
+A **reconnection** is the second part of a run after a flow cell is disconnected and reconnected, as described above. Reconnections are identified from lines in the JSON parser output TSV that have the same sample name and same flow cell ID.
 
-A recovery run is conducted when either insufficient library is prepared for three full loads (over three days) or when active pores substantially decrease from pre-sequencing checks after the first load. Library is recovered by slow aspiration from the flow cell sample port itself. Library is generally recovered after the first load (often due to active pore drop off) and either loaded onto a new flow cell or to the same flow cell for a subsequent load. 
+A **recovery** run is conducted when either insufficient library is prepared for three full loads (over three days) or when active pores substantially decrease from pre-sequencing checks after the first load. Library is recovered by slow aspiration from the flow cell sample port itself. Library is generally recovered after the first load (often due to active pore drop off) and either loaded onto a new flow cell or to the same flow cell for a subsequent load. 
 
-A top up run is conducted on a new flow cell when an experiment has not yielded the desired 90 Gbp (30x coverage) from the initial run (and reconnections/recoveries where applicable). Top up runs are conducted either with initial library if there is sufficient library for more than three loads or with new library if not.
+A **top up** run is conducted on a new flow cell when an experiment has not yielded the desired 90 Gbp (30x coverage) from the initial run (and reconnections/recoveries where applicable). Top up runs are conducted either with initial library if there is sufficient library for more than three loads or with new library if not.
 
 Top up runs are labeled with the suffix _topup and recovery runs are labeled with the suffix _recovery in the sample name column.
 
@@ -191,7 +191,7 @@ python3 CARDlongread_extract_from_json.py --filelist example_json_reports.txt --
 python3 CARDlongread_extract_from_json.py --json_dir /data/CARDPB/data/PPMI/SEQ_REPORTS/example_json_reports/ --output example_output.tsv
 
 # Make sequencing QC analytics spreadsheet from above QC output table (example_output.tsv)
-python3 CARDlongread_extract_summary_statistics.py -input example_output.tsv -output example_summary_spreadsheet.xlsx -platform_qc example_platform_qc.csv -plot_title "PPMI tutorial example"
+python3 CARDlongread_extract_summary_statistics.py -input example_output.tsv -output example_summary_spreadsheet.xlsx -platform_qc example_platform_qc.csv -plot_title "PPMI tutorial example" -output_table_with_platform_qc example_output_with_platform_qc.tsv -output_table_with_run_type example_output_with_run_type.tsv
 ```
 
 Example sequencing QC visualizations from tutorial summary spreadsheet:
