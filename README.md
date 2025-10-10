@@ -268,8 +268,8 @@ Below are example grouped violinplots from the dashboard that colors blood sampl
 
 And below are corresponding grouped violinplots (read N50, run data output) from the default color dashboard:
 
-<img width="720" alt="image" src="https://github.com/user-attachments/assets/d815e558-e47e-4184-8d88-cb0275ac20c4" />
-<img width="720" alt="image" src="https://github.com/user-attachments/assets/9c82fb88-f213-4ceb-855b-6f8313aa954c" />
+<img width="720" alt="image" src="https://github.com/user-attachments/assets/56263519-fcfb-46b3-af81-ca5dfd1e133b" />
+<img width="720" alt="image" src="https://github.com/user-attachments/assets/28d49036-03c0-49bb-820f-0ef027b2cd92" />
 
 The two grouped violinplots shown below compare custom coloring with default coloring for data output per sample:
 
