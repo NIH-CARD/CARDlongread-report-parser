@@ -209,11 +209,11 @@ Per run data output vs. starting active pore scatter plot with run type annotate
 <br></br>
 Per run data output vs. difference between starting active pores (after sequencing) and platform QC active pores at the initial flow cell check with run type annotated by point color and cutoff provided for data output (gray - desired output of 30X human genome coverage or 90 Gbp sequencing output).
 <br></br>
-<img width="642" alt="image" src="https://github.com/user-attachments/assets/2eb5196d-7cf0-4abb-86b9-760a457362a4" />
+<img width="720" alt="image" src="https://github.com/user-attachments/assets/7443d49e-7b85-4529-ab05-dee77ec254c2" />
 <br></br>
 Per run data output vs. date sequencing run was conducted with run type annotated by point color and cutoff provided for data output (gray - desired output of 30X human genome coverage or 90 Gbp sequencing output).
 <br></br>
-<img width="642" alt="image" src="https://github.com/user-attachments/assets/1378ce87-5f45-45a8-8de3-325935a3ad96" />
+<img width="720" alt="image" src="https://github.com/user-attachments/assets/cf7a53aa-a797-4c3d-bf91-9267ecc7499c" />
 <br></br>
 
 ## Comparing QC metrics across groups
