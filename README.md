@@ -138,6 +138,7 @@ Example usage (```python CARDlongread_extract_summary_statistics.py -h```):
 ```
 usage: CARDlongread_extract_summary_statistics.py [-h] [-input INPUT_FILE [INPUT_FILE ...]] [-names [NAMES ...]] [-output OUTPUT_FILE] [-platform_qc PLATFORM_QC] [-plot_title PLOT_TITLE] [--plot_cutoff | --no-plot_cutoff]
                                                   [-run_cutoff RUN_CUTOFF] [--strip_plot | --no-strip_plot] [-colors [COLORS ...]] [-legend_colors [LEGEND_COLORS ...]] [-legend_labels [LEGEND_LABELS ...]] [--group_count | --no-group_count]
+                                                  [-output_table_with_platform_qc OUTPUT_TABLE_WITH_PLATFORM_QC] [-output_table_with_run_type OUTPUT_TABLE_WITH_RUN_TYPE]
 
 This program gets summary statistics from long read sequencing report data.
 
@@ -164,6 +165,10 @@ optional arguments:
                         Labels for each color in legend in order specified in -legend_colors.
   --group_count, --no-group_count
                         Show group count in x-axis labels (optional; default false) (default: False)
+  -output_table_with_platform_qc OUTPUT_TABLE_WITH_PLATFORM_QC
+                        Output filename for run report summary table joined with platform QC flow cell check information (optional).
+  -output_table_with_run_type OUTPUT_TABLE_WITH_RUN_TYPE
+                        Output filename for run report summary table with appended run type, such as 'top up' or 'reconnection' (optional).
 ```
 ## Tutorial
 
