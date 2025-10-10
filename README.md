@@ -198,8 +198,10 @@ python3 CARDlongread_extract_summary_statistics.py -input example_output.tsv -ou
 Example sequencing QC visualizations from tutorial summary spreadsheet:
 <br></br>
 Per run output violin plot with embedded box plot and displayed data points, plus run type annotated by point color and red cutoff line for desired 30x coverage/90 Gbp output:
+
+<!-- img width="720" alt="image" src="https://github.com/user-attachments/assets/5fccccb4-71ca-484b-904f-414fccf2e12b" -->
 <br></br>
-<img width="720" alt="image" src="https://github.com/user-attachments/assets/5fccccb4-71ca-484b-904f-414fccf2e12b">
+<img width="720" alt="image" src="https://github.com/user-attachments/assets/8c3d9162-fd7b-4675-9b44-7338bd19aefd" />
 <br></br>
 Per run starting active pores violin plot with embedded box plot and displayed data points, plus run type annotated by point color and red cutoff line for recommended minimum 6500 starting active pores:
 <br></br>
