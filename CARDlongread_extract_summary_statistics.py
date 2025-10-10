@@ -70,15 +70,15 @@ def get_output_per_flow_cell(flow_cell_IDs, output, topup):
     # find unique flow cells
     unique_flow_cells = np.unique(flow_cell_IDs.astype(str))
     # create output_per_flow_cell_df data frame
-    output_per_flow_cell_df = pd.DataFrame({'Flow Cell ID' : unique_flow_cells}, index=unique_flow_cells, columns=['Flow Cell ID','Flow cell output (Gb)','Top up'])
+    output_per_flow_cell_df = pd.DataFrame({'Flow Cell ID' : unique_flow_cells}, index=unique_flow_cells, columns=['Flow Cell ID','Flow cell output (Gb)','Run type'])
     # find flow cells and total output per unique experiment by iterating through unique experiment names
     for i in unique_flow_cells:
         unique_outputs_per_flow_cell = pd.unique(flow_cells_to_output[flow_cells_to_output['Flow Cell ID'] == i]['Data output (Gb)'])
-        unique_topup_per_flow_cell = pd.unique(flow_cells_to_output[flow_cells_to_output['Flow Cell ID'] == i]['Top up'])
+        unique_topup_per_flow_cell = pd.unique(flow_cells_to_output[flow_cells_to_output['Flow Cell ID'] == i]['Run type'])
         # total_unique_outputs_per_flow_cell = len(unique_outputs_per_flow_cell)
         total_output_per_flow_cell = sum(flow_cells_to_output[flow_cells_to_output['Flow Cell ID'] == i]['Data output (Gb)'])
         output_per_flow_cell_df['Flow cell output (Gb)'][i] = total_output_per_flow_cell
-        output_per_flow_cell_df['Top up'][i] = unique_topup_per_flow_cell
+        output_per_flow_cell_df['Run type'][i] = unique_topup_per_flow_cell
     # convert flow cell output total to numeric type for plotting
     output_per_flow_cell_df['Flow cell output (Gb)'] = pd.to_numeric(output_per_flow_cell_df['Flow cell output (Gb)'])
     # return flow_cells_per_experiment_df data frame
@@ -162,6 +162,7 @@ def make_summary_statistics_data_frame(summary_statistics_set, property_names):
     return summary_statistics_df
     
 # identify topups and reconnections (flow cell moved and run restarted)
+# later modified this to change "Initial run" designation to "Standard run" and "Interrupted"
 def identify_topups(column):
     # make output array "topups" as long as input column
     topups = [None] * len(column)
@@ -176,27 +177,48 @@ def identify_topups(column):
             # if reconnected in sample name, set value to reconnection
             topups[idx] = "Reconnection"
         else:
-            # if topup or other labels not in sample name, set value to "Initial run"
-            topups[idx] = "Initial run"
+            # if topup or other labels not in sample name, set value to "Standard run"
+            topups[idx] = "Standard run"
     # return topups/no topups column
     return topups
 
 # identify reconnections through sequence run flow cell ID (shared between runs), date, and experiment name
 # reconnection if same name and flow cell ID as previous run; add value to topups column shown before
+# later modified this to change "Initial run" designation to "Standard run" and "Interrupted"
 def identify_reconnections(data):
-    data_with_reconnections = data.copy()
+    # make copy of initial data to be modified further
+    # sort data with reconnections by date and time so that first chronological run is "Interrupted" and subsequent are "Reconnection"
+    data_with_reconnections = data.copy().sort_values(by='Start Run Timestamp')
+    # get duplicate flow cells and remove NAs/NaNs
+    duplicate_flow_cell_ids=data_with_reconnections[data_with_reconnections['Flow Cell ID'].duplicated()]['Flow Cell ID'].dropna()
+    # loop through rows of data frame on duplicate flow cell ids
+    for i in duplicate_flow_cell_ids:
+        # get current duplicate flow cell ID data frame rows
+        current_duplicate_flow_cell_id_df = data_with_reconnections[data_with_reconnections['Flow Cell ID'] == i]
+        # get indexes to reference original df
+        current_duplicate_flow_cell_id_indexes=current_duplicate_flow_cell_id_df.index
+        # check if same sample name in all cases
+        if (current_duplicate_flow_cell_id_df['Sample Name'].nunique() == 1):
+            # set run type first instance to Interrupted [0]
+            data_with_reconnections.loc[current_duplicate_flow_cell_id_indexes[0],'Run type'] = 'Interrupted'
+            # set run type second and subsequent instances to Reconnection [1:]
+            data_with_reconnections.loc[current_duplicate_flow_cell_id_indexes[1:],'Run type'] = 'Reconnection'
+    # prior method left below as comments
     # loop through rows of data frame on Flow Cell ID column
-    for idx, i in enumerate(data['Flow Cell ID']):
+    # for idx, i in enumerate(data['Flow Cell ID']):
         # see if flow cell ID in previous subset of list before current element
-        if i in list(data['Flow Cell ID'][0:idx]):
+        # if i in list(data['Flow Cell ID'][0:idx]):
             # get data frame for repeated flow cell
-            duplicate_flow_cell_id_df = data[data['Flow Cell ID'] == i]
+            # duplicate_flow_cell_id_df = data[data['Flow Cell ID'] == i]
             # compare sample name for current run to all those with flow cell ID
-            test_sample_name = data.loc[idx]["Sample Name"]
+            # test_sample_name = data.loc[idx]["Sample Name"]
             # print(test_sample_name)
             # if same sample name more than once for given flow cell, name most recent run as reconnection
-            if (sum(duplicate_flow_cell_id_df["Sample Name"] == test_sample_name) > 1):
-                data_with_reconnections.loc[(idx,"Top up")] = "Reconnection"
+            # if same sample name more than once for given flow cell, name first run as interrupted
+            # name all subsequent runs as reconnection
+            # if (sum(duplicate_flow_cell_id_df["Sample Name"] == test_sample_name) > 1):
+                # change top up column to run type
+                # data_with_reconnections.loc[(idx,"Run type")] = "Reconnection"
     # return data frame with algorithmically detected reconnections in topups column
     return data_with_reconnections
     
@@ -217,14 +239,14 @@ def make_violinswarmplot_worksheet(data,input_variable,group_variable,legend_pat
         # replace color='black'
         if strip_plot_set is False:
             if top_up is not None:
-                rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
-                ax = sb.swarmplot(data=data,x=input_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
+                rearranged_color_palette = [sb.color_palette()[0],'firebrick',sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+                ax = sb.swarmplot(data=data,x=input_variable,hue="Run type",hue_order=['Standard run','Interrupted','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
             else:
                 ax = sb.swarmplot(data=data,x=input_variable,color='black')
         elif strip_plot_set is True:
             if top_up is not None:
-                rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
-                ax = sb.stripplot(data=data,x=input_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
+                rearranged_color_palette = [sb.color_palette()[0],'firebrick',sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+                ax = sb.stripplot(data=data,x=input_variable,hue="Run type",hue_order=['Standard run','Interrupted','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
             else:
                 ax = sb.stripplot(data=data,x=input_variable,color='black')
         # add violin plot using seaborn (sb.violinplot)
@@ -240,8 +262,8 @@ def make_violinswarmplot_worksheet(data,input_variable,group_variable,legend_pat
             # allow user set palette
             if user_palette is None:
                 if top_up is not None:
-                    rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
-                    ax = sb.swarmplot(data=data,x=group_variable,y=input_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
+                    rearranged_color_palette = [sb.color_palette()[0],'firebrick',sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+                    ax = sb.swarmplot(data=data,x=group_variable,y=input_variable,hue="Run type",hue_order=['Standard run','Interrupted','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
                 else:
                     ax = sb.swarmplot(data=data,x=group_variable,y=input_variable,hue=group_variable,legend=False)
             else:
@@ -250,8 +272,8 @@ def make_violinswarmplot_worksheet(data,input_variable,group_variable,legend_pat
             # allow user set palette
             if user_palette is None:
                 if top_up is not None:
-                    rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
-                    ax = sb.stripplot(data=data,x=group_variable,y=input_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
+                    rearranged_color_palette = [sb.color_palette()[0],'firebrick',sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+                    ax = sb.stripplot(data=data,x=group_variable,y=input_variable,hue="Run type",hue_order=['Standard run','Interrupted','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,edgecolor='white',linewidth=1)
                 else:
                     ax = sb.stripplot(data=data,x=group_variable,y=input_variable,hue=group_variable,legend=False)
             else:
@@ -345,8 +367,8 @@ def make_scatterplot_worksheet(data,group_variable,legend_patches,user_palette,s
     if show_run_colors is True and prop_point_size is False:
         # show top up colors if no group variable included
         if group_variable is None:
-            rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
-            ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette)
+            rearranged_color_palette = [sb.color_palette()[0],'firebrick',sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+            ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue="Run type",hue_order=['Standard run','Interrupted','Top up','Reconnection','Recovery'],palette=rearranged_color_palette)
         # override top up colors if group variable included
         else:
             # default palette if no palette specified
@@ -360,8 +382,8 @@ def make_scatterplot_worksheet(data,group_variable,legend_patches,user_palette,s
     elif show_run_colors is True and prop_point_size is True:
         # show top up colors if no group variable included
         if group_variable is None:
-            rearranged_color_palette = [sb.color_palette()[0],sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
-            ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue="Top up",hue_order=['Initial run','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,size=data[size_column])
+            rearranged_color_palette = [sb.color_palette()[0],'firebrick',sb.color_palette()[1],sb.color_palette()[4],sb.color_palette()[5]]
+            ax = sb.scatterplot(data=data,x=x_variable,y=y_variable,hue="Run type",hue_order=['Standard run','Interrupted','Top up','Reconnection','Recovery'],palette=rearranged_color_palette,size=data[size_column])
         # override top up colors if no group variable included
         else:
             # default palette if no palette specified
@@ -443,6 +465,10 @@ parser.add_argument('-legend_colors', action="store", default=None, dest="legend
 parser.add_argument('-legend_labels', action="store", default=None, dest="legend_labels", nargs="*", help="Labels for each color in legend in order specified in -legend_colors.")
 # add option to show sample size for groups in grouped violinplots
 parser.add_argument('--group_count', action=argparse.BooleanOptionalAction, default=False, dest="show_group_count", help="Show group count in x-axis labels (optional; default false)")
+# add option to output platform qc joined table
+parser.add_argument('-output_table_with_platform_qc', action="store", default=None, help="Output filename for run report summary table joined with platform QC flow cell check information (optional).")
+# add option to output run type designation
+parser.add_argument('-output_table_with_run_type', action="store", default=None, help="Output filename for run report summary table with appended run type, such as 'top up' or 'reconnection' (optional).")
 
 # parse arguments
 results = parser.parse_args()
@@ -499,7 +525,7 @@ if len(results.input_file)==1:
     # avoid nested tuple warning
     # longread_extract["Top up"] = identify_topups(longread_extract["Sample Name"])
     # add after 12th column or last column (dataframe.shape[1])
-    longread_extract.insert(longread_extract.shape[1],"Top up",identify_topups(longread_extract["Sample Name"]),True)
+    longread_extract.insert(longread_extract.shape[1],"Run type",identify_topups(longread_extract["Sample Name"]),True)
     # identify reconnections amongst flow cells
     longread_extract = identify_reconnections(longread_extract)
     # convert run starting timestamp to date and time
@@ -507,8 +533,13 @@ if len(results.input_file)==1:
     # get flow cells/output per experiment table overall
     longread_extract_flow_cells_and_output_per_experiment = get_flow_cells_and_output_per_experiment(longread_extract['Experiment Name'], longread_extract['Flow Cell ID'], longread_extract['Data output (Gb)'])
     # get output per flow cell table overall
-    longread_extract_output_per_flow_cell = get_output_per_flow_cell(longread_extract['Flow Cell ID'], longread_extract['Data output (Gb)'], longread_extract['Top up'])
+    longread_extract_output_per_flow_cell = get_output_per_flow_cell(longread_extract['Flow Cell ID'], longread_extract['Data output (Gb)'], longread_extract['Run type'])
+    # set grouped variable as False
     grouped=False
+    # output table with run type determined if specified in options
+    if results.output_table_with_run_type is not None:
+        # output to TSV with indexes excluded
+        longread_extract.to_csv(results.output_table_with_run_type,index=False,sep="\t")
 # what if multiple input files provided
 elif len(results.input_file)>1:
     # store input tables in list as long input filename set
@@ -528,7 +559,7 @@ elif len(results.input_file)>1:
         # avoid nested tuple warning
         # longread_extract["Top up"] = identify_topups(longread_extract["Sample Name"])
         # add after 12th column or last column (dataframe.shape[1])
-        longread_extract_initial_list[idx].insert(longread_extract_initial_list[idx].shape[1],"Top up",identify_topups(longread_extract_initial_list[idx]["Sample Name"]),True)
+        longread_extract_initial_list[idx].insert(longread_extract_initial_list[idx].shape[1],"Run type",identify_topups(longread_extract_initial_list[idx]["Sample Name"]),True)
         # identify reconnections amongst flow cells
         longread_extract_initial_list[idx] = identify_reconnections(longread_extract_initial_list[idx])
         # convert run starting timestamp to date and time
@@ -536,7 +567,7 @@ elif len(results.input_file)>1:
         # get flow cells/output per experiment table for group
         longread_extract_flow_cells_and_output_per_experiment_initial_list[idx] = get_flow_cells_and_output_per_experiment(longread_extract_initial_list[idx]['Experiment Name'], longread_extract_initial_list[idx]['Flow Cell ID'], longread_extract_initial_list[idx]['Data output (Gb)'])
         # get output per flow cell table for group
-        longread_extract_output_per_flow_cell_initial_list[idx] = get_output_per_flow_cell(longread_extract_initial_list[idx]['Flow Cell ID'], longread_extract_initial_list[idx]['Data output (Gb)'], longread_extract_initial_list[idx]['Top up'])
+        longread_extract_output_per_flow_cell_initial_list[idx] = get_output_per_flow_cell(longread_extract_initial_list[idx]['Flow Cell ID'], longread_extract_initial_list[idx]['Data output (Gb)'], longread_extract_initial_list[idx]['Run type'])
         # add group name to each table in list
         if results.show_group_count is True:
             # if group count specified, add group count to group name
@@ -565,8 +596,12 @@ elif len(results.input_file)>1:
     longread_extract=pd.concat(longread_extract_initial_list[:],ignore_index=True)
     longread_extract_flow_cells_and_output_per_experiment=pd.concat(longread_extract_flow_cells_and_output_per_experiment_initial_list[:],ignore_index=True)
     longread_extract_output_per_flow_cell=pd.concat(longread_extract_output_per_flow_cell_initial_list[:],ignore_index=True)
-    # set grouped variable
+    # set grouped variable as True
     grouped=True
+    # output table with run type determined if specified in options
+    if results.output_table_with_run_type is not None:
+        # output to TSV with indexes excluded
+        longread_extract.to_csv(results.output_table_with_run_type,index=False,sep="\t")
 
 # read csv delimited platform qc file into pandas data frame if provided
 if results.platform_qc is not None:
@@ -586,7 +621,12 @@ if results.platform_qc is not None:
     # also include time series for plotting
     # convert to iso8601 format
     longread_extract_with_platform_qc_and_diff['Platform QC date']=[datetime.fromtimestamp(x) for x in pd.to_numeric(longread_extract_with_platform_qc_and_diff['timestamp'])]
-    longread_extract_with_platform_qc_and_diff['Run date']=[datetime.fromtimestamp(x) for x in pd.to_numeric(longread_extract_with_platform_qc_and_diff['Start Run Timestamp'])]        
+    longread_extract_with_platform_qc_and_diff['Run date']=[datetime.fromtimestamp(x) for x in pd.to_numeric(longread_extract_with_platform_qc_and_diff['Start Run Timestamp'])] 
+    # output longread_extract/platform_qc joined table if option specified
+    # output table with platform QC stats joined if specified in options
+    if results.output_table_with_platform_qc is not None:
+        # output to TSV with indexes excluded
+        longread_extract.to_csv(results.output_table_with_platform_qc,index=False,sep="\t")       
 
 # functionalize all below to run through on separate groups
 def longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell):
@@ -960,6 +1000,9 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
     make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Avg active pores vs. data",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Average Active Pores',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
     # add active pore AUC vs. data output
     make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Active pore AUC vs. data",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Active Pore AUC',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
+    # add active pore AUC vs. read count
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore AUC vs. read count",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Active Pore AUC',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
+    
     # add average pore occupancy vs. data output
     make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Avg pore occup. vs. data",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Average Pore Occupancy',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
     # add average median translocation speed vs. average median Q score if both columns have data present
@@ -1019,7 +1062,6 @@ elif grouped is True:
         make_report_plot_sequence('Group and count',legend_patches,results.colors,results.strip_plot)
     else:
         make_report_plot_sequence('Group',legend_patches,results.colors,results.strip_plot)
-
 
 # save workbook when done
 workbook.save(results.output_file)
