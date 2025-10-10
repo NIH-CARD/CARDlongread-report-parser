@@ -136,7 +136,6 @@ Per run data output vs. starting active pore scatter plot with run type annotate
 <img width="720" alt="image" src="https://github.com/user-attachments/assets/dd234caf-b772-4d4f-9944-7b51fab96f5f" />
 <br></br>
 Example usage (```python CARDlongread_extract_summary_statistics.py -h```):
-
 ```
 usage: CARDlongread_extract_summary_statistics.py [-h] [-input INPUT_FILE [INPUT_FILE ...]] [-names [NAMES ...]] [-output OUTPUT_FILE] [-platform_qc PLATFORM_QC] [-plot_title PLOT_TITLE] [--plot_cutoff | --no-plot_cutoff]
                                                   [-run_cutoff RUN_CUTOFF] [--strip_plot | --no-strip_plot] [-colors [COLORS ...]] [-legend_colors [LEGEND_COLORS ...]] [-legend_labels [LEGEND_LABELS ...]] [--group_count | --no-group_count]
