@@ -128,8 +128,8 @@ Example data visualizations corresponding to data snippets shown earlier:
 Total per flow cell output violin plot with embedded box plot, displayed data points, and 30x/90Gbp cutoff line:
 <br></br>
 <img width="720" alt="image" src="https://github.com/user-attachments/assets/3ff9c40a-c584-4c3f-9476-b945cee64e23" />
-<br></br>
 <!-- img width="720" alt="image" src="https://github.com/user-attachments/assets/f576c444-65c7-4c66-9a1a-a6a7ebdfa6e4" -->
+<br></br>
 Per run data output vs. starting active pore scatter plot with run type annotated by color and cutoffs provided for starting active pores (red - less than 5000 pores for ONT warranty return, green - 6500 pores or higher for internal QC) and data output (gray - desired 30X human genome coverage or 90 Gbp sequencing output).
 <br></br>
 <img width="720" alt="image" src="https://github.com/user-attachments/assets/dd234caf-b772-4d4f-9944-7b51fab96f5f" />
