@@ -346,10 +346,39 @@ def platform_qc_starting_active_pore_diff(data,platform_qc):
         # below for debugging
         # print(per_unique_run_df)
         data_with_platform_qc_and_diff.loc[idx] = per_unique_run_df[per_unique_run_df['Time Difference']==min(per_unique_run_df['Time Difference'])].iloc[0,:]
+    # set dtypes to match original joined df
+    data_with_platform_qc_and_diff=data_with_platform_qc_and_diff.astype(data_platform_qc_join_cleaned.dtypes)
     # convert starting active pore column to numeric
     # data_with_platform_qc_and_diff.loc[:,['Starting Active Pores']]=pd.to_numeric(data_with_platform_qc_and_diff['Starting Active Pores'])
     # return data frame with platform qc active pores, pore differences, and timestamp differences appended
     return data_with_platform_qc_and_diff
+
+# function for calculating storage time based on imported delivery date table
+def calc_storage_time_from_delivery_date(data,delivery_date_df):
+    # join delivery date and data tables on Flow Cell ID
+    data_delivery_date_join_df = data.join(delivery_date_df.set_index("Flow Cell ID"),on="Flow Cell ID")
+    # remove those where Batch is NaN
+    data_delivery_date_join_df = data_delivery_date_join_df.dropna(subset='Batch')
+    # calculate storage time
+    # data_delivery_date_join_df.loc[:,['Storage Time (Days)']] = round((data_delivery_date_join_df['Start Run Timestamp'] - data_delivery_date_join_df['Delivery date timestamp'])/86400,3)
+    # find unique run timestamps
+    unique_run_timestamps = np.unique(data_delivery_date_join_df["Start Run Timestamp"])
+    # initialize new data frame as long as unique runs based on unique run timestamps
+    # remove {'Start Run Timestamp' : unique_run_timestamps} from arguments below
+    # convert joined table column names to list
+    data_with_delivery_date_batch_and_storage_time = pd.DataFrame(columns=data_delivery_date_join_df.columns.tolist() + ['Storage Time (Days)'])
+    # find matching rows in input delivery date/batch table
+    for idx, i in enumerate(unique_run_timestamps):
+        # pick all platform qc results per run timestamp
+        per_unique_run_df=data_delivery_date_join_df[data_delivery_date_join_df["Start Run Timestamp"] == i]
+        # calculate storage time
+        per_unique_run_df.loc[:,['Storage Time (Days)']] = (per_unique_run_df['Start Run Timestamp'] - per_unique_run_df['Delivery date timestamp'])/86400
+        # if multiple delivery dates for unique run, then use most recent (shortest storage time calculation)
+        data_with_delivery_date_batch_and_storage_time.loc[idx] = per_unique_run_df[per_unique_run_df['Storage Time (Days)']==min(per_unique_run_df['Storage Time (Days)'])].iloc[0,:]
+    # set dtypes to match original joined df
+    data_with_delivery_date_batch_and_storage_time=data_with_delivery_date_batch_and_storage_time.astype(data_delivery_date_join_df.dtypes)
+    # return data frame with delivery date/batch info and storage times calculated as differences between start run timestamps and delivery date timestamps
+    return data_with_delivery_date_batch_and_storage_time
 
 # single function for scatterplots with/without cutoffs
 
@@ -449,7 +478,11 @@ parser.add_argument('-input', action="store", dest="input_file", nargs="+", help
 parser.add_argument('-names', action="store", dest="names", nargs="*", help="Names corresponding to input tsv file(s); required if more than one tsv provided.")
 # single output xlsx
 parser.add_argument('-output', action="store", dest="output_file", help="Output long read sequencing summary statistics XLSX")
+# import platform QC table in format specified in CARDlongread_MinKNOW_api_scripts repository
 parser.add_argument('-platform_qc', action="store",default=None, dest="platform_qc", help="Input platform QC table to calculate active pore dropoff upon sequencing (optional)")
+# import delivery date table parsed from ONT provided spreadsheet with export_flow_cell_delivery_dates.py
+parser.add_argument('-delivery_date_batches',action="store",default=None,dest="delivery_date_batches", help="Input delivery date/batch table to calculate storage time per flow cell based on delivery date and run timestamp (optional).")
+# add option to specify plot title
 parser.add_argument('-plot_title', action="store", default=None, dest="plot_title", help="Title for each plot in output XLSX (optional)")
 # add boolean --plot_cutoff argument
 parser.add_argument('--plot_cutoff', action=argparse.BooleanOptionalAction, default=True, dest="plot_cutoff", help="Include cutoff lines in violin plots (optional; default true; --no-plot_cutoff to override)")
@@ -469,6 +502,8 @@ parser.add_argument('--group_count', action=argparse.BooleanOptionalAction, defa
 parser.add_argument('-output_table_with_platform_qc', action="store", default=None, help="Output filename for run report summary table joined with platform QC flow cell check information (optional).")
 # add option to output run type designation
 parser.add_argument('-output_table_with_run_type', action="store", default=None, help="Output filename for run report summary table with appended run type, such as 'top up' or 'reconnection' (optional).")
+# add option to output storage time designation
+parser.add_argument('-output_table_with_storage_time', action="store", default=None, help="Output filename for run report summary table with delivery date, batch, and storage times in days added (optional).")
 
 # parse arguments
 results = parser.parse_args()
@@ -540,6 +575,17 @@ if len(results.input_file)==1:
     if results.output_table_with_run_type is not None:
         # output to TSV with indexes excluded
         longread_extract.to_csv(results.output_table_with_run_type,index=False,sep="\t")
+    # handle delivery dates
+    if results.delivery_date_batches is not None:
+        delivery_date_batches_table=pd.read_csv(results.delivery_date_batches,sep="\t")
+        # set longread_extract to original table joined with delivery date/batches table + calculated storage times in days
+        longread_extract=calc_storage_time_from_delivery_date(longread_extract,delivery_date_batches_table)
+        # convert critical variable to numeric for statistics and plotting
+        longread_extract['Storage Time (Days)']=pd.to_numeric(longread_extract['Storage Time (Days)'])
+        # output table with delivery date determined if specified in options
+        if results.output_table_with_storage_time is not None:
+            longread_extract.to_csv(results.output_table_with_storage_time,index=False,sep="\t")
+    
 # what if multiple input files provided
 elif len(results.input_file)>1:
     # store input tables in list as long input filename set
@@ -602,7 +648,17 @@ elif len(results.input_file)>1:
     if results.output_table_with_run_type is not None:
         # output to TSV with indexes excluded
         longread_extract.to_csv(results.output_table_with_run_type,index=False,sep="\t")
-
+    # handle delivery dates
+    if results.delivery_date_batches is not None:
+        delivery_date_batches_table=pd.read_csv(results.delivery_date_batches,sep="\t")
+        # set longread_extract to original table joined with delivery date/batches table + calculated storage times in days
+        longread_extract=calc_storage_time_from_delivery_date(longread_extract,delivery_date_batches_table)
+        # convert critical variables to numeric for statistics and plotting
+        longread_extract['Storage Time (Days)']=pd.to_numeric(longread_extract['Storage Time (Days)'])
+        # output table with delivery date determined if specified in options
+        if results.output_table_with_storage_time is not None:
+            longread_extract.to_csv(results.output_table_with_storage_time,index=False,sep="\t")
+    
 # read csv delimited platform qc file into pandas data frame if provided
 if results.platform_qc is not None:
     platform_qc_table=pd.read_csv(results.platform_qc)
@@ -679,6 +735,9 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
     failed_bases_summary_stats = get_summary_statistics(longread_extract['Failed Bases (Gb)'])
     # percentage passed bases
     percentage_passed_bases_summary_stats = get_summary_statistics(longread_extract['Percentage Passed Bases'])
+    # check if storage time included in longread_extract
+    if 'Storage Time (Days)' in longread_extract:
+        storage_time_summary_stats = get_summary_statistics(longread_extract['Storage Time (Days)'])
     
     # combine summary stats into one list
     combined_summary_stats = [read_N50_summary_stats,
@@ -723,6 +782,12 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
     'Passed bases (Gb)',
     'Failed bases (Gb)',
     'Percentage passed bases']
+    
+    # append storage time to combined_summary_stats and combined_property_names if present:
+    if 'Storage Time (Days)' in longread_extract:
+        combined_summary_stats.append(storage_time_summary_stats)
+        combined_property_names.append('Storage time (days)')
+    
     combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
 
     # include platform QC active pores/pore difference information where applicable
@@ -773,7 +838,14 @@ def longread_platform_qc_summary_statistics(longread_extract,longread_extract_wi
         'Passed bases (Gb)',
         'Failed bases (Gb)',
         'Percentage passed bases']
+        
+        # append storage time to combined_summary_stats and combined_property_names if present:
+        if 'Storage Time (Days)' in longread_extract:
+            combined_summary_stats.append(storage_time_summary_stats)
+            combined_property_names.append('Storage time (days)')
+        
         combined_summary_stats_df = make_summary_statistics_data_frame(combined_summary_stats,combined_property_names)
+        
     # minknow version distribution
     longread_extract_minknow_version_dist = get_minknow_version_dist(longread_extract['MinKNOW Version'])
     # sampling rate distribution
@@ -871,6 +943,7 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
     # if/else depending on whether -plot_cutoff set
     if results.plot_cutoff is True:
         # show topups in first four plots
+        # test to check data type for first plotted variable: print(longread_extract['N50 (kb)'].dtype)
         make_violinswarmplot_worksheet(longread_extract,"N50 (kb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Read N50 plot',None,None,results.plot_title,True)
         make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run data output plot',None,90,results.plot_title,True)
         make_violinswarmplot_worksheet(longread_extract,"Read Count (M)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run read count plot',"Read Count (million reads)",None,results.plot_title,True)
@@ -921,6 +994,11 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
             # time differences between sequencing and platform QC
             # show topups
             make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Time Difference",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Platform-seq time diff plot',"Platform to sequencing time difference",None,results.plot_title,True)
+        # delivery date/batch/storage time swarmplots
+        if results.delivery_date_batches is not None:
+            # plot storage time in days
+            make_violinswarmplot_worksheet(longread_extract,"Storage Time (Days)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Storage time plot',"Storage time (days)",None,results.plot_title,True)
+                  
     else:
         # show topups in first four plots
         make_violinswarmplot_worksheet(longread_extract,"N50 (kb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Read N50 plot',None,None,results.plot_title,True)
@@ -971,6 +1049,10 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
             make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Pore Difference",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Platform-seq pore diff plot',"Platform to sequencing pore difference",None,results.plot_title)
             # time differences between sequencing and platform QC
             make_violinswarmplot_worksheet(longread_extract_with_platform_qc_and_diff,"Time Difference",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Platform-seq time diff plot',"Platform to sequencing time difference",None,results.plot_title)
+        # delivery date/batch/storage time swarmplots
+        if results.delivery_date_batches is not None:
+            # plot storage time in days
+            make_violinswarmplot_worksheet(longread_extract,"Storage Time (Days)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Storage time plot',"Storage time (days)",None,results.plot_title,True)
     # use make_active_pore_data_output_scatterplot function to add starting active pore vs. data output scatterplot
     # make_active_pore_data_output_scatterplot(longread_extract,workbook,'Active pores vs. data output',results.plot_title)
     # redo with make_scatterplot_worksheet
@@ -1038,7 +1120,10 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
         # pore difference vs. run output scatterplot
         make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore difference vs. run output",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Pore Difference',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)        
         # add pore difference vs. active pore auc scatterplot
-        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore diff. vs. active pore AUC",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Pore Difference',y_variable='Active Pore AUC',prop_point_size=False,size_column=None)        
+        make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore diff. vs. active pore AUC",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Pore Difference',y_variable='Active Pore AUC',prop_point_size=False,size_column=None)        
+        # add pore difference vs. average median Q score if Q score present
+        if (longread_extract['Average Median Q Score Over Time'].count()>0):
+            make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore diff. vs. Q score",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Pore Difference',y_variable='Average Median Q Score Over Time',prop_point_size=False,size_column=None)        
         # add pore difference vs. pore occupancy scatterplot
         make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore occup. vs. pore diff.",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Starting Pore Occupancy',y_variable='Pore Difference',prop_point_size=False,size_column=None)        
         # read N50 vs. run output scatterplot with coloring by run type and size based on pore difference
@@ -1049,9 +1134,26 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
         make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Platform QC pores over time",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[6500],y_cutoff_colors=['green'],show_run_colors=True,show_reg_line=False,x_variable='Platform QC date',y_variable='Platform QC active pores',prop_point_size=False,size_column=None,has_date_time=True)
         # pore difference over time
         make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore difference over time",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Run date',y_variable='Pore Difference',prop_point_size=False,size_column=None,has_date_time=True)    
+        # delivery date/batch/storage time swarmplots
+        if results.delivery_date_batches is not None:
+            # storage time vs. pore difference
+            make_scatterplot_worksheet(longread_extract_with_platform_qc_and_diff,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore diff. vs storage",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Storage Time (Days)',y_variable='Pore Difference',prop_point_size=False,size_column=None,has_date_time=True)    
+            
     # run output over time
     make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Run output over time",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Run date',y_variable='Data output (Gb)',prop_point_size=False,size_column=None,has_date_time=True)    
-
+    # delivery date/batch/storage time swarmplots
+    if results.delivery_date_batches is not None:
+        # storage time vs. data output
+        make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Storage vs. data output",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Storage Time (Days)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
+        # storage time vs. starting active pores
+        make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Storage vs. starting pores",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[5000,6500],y_cutoff_colors=['red','green'],show_run_colors=True,show_reg_line=False,x_variable='Storage Time (Days)',y_variable='Starting Active Pores',prop_point_size=False,size_column=None)            
+        # storage time vs. active pore AUC
+        make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Storage vs. pore AUC",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Storage Time (Days)',y_variable='Active Pore AUC',prop_point_size=False,size_column=None)            
+        # storage time vs. average median Q score over run
+        if (longread_extract['Average Median Q Score Over Time'].count()>0):
+            make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Storage vs. Q score",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[8],y_cutoff_colors=['blue'],show_run_colors=True,show_reg_line=False,x_variable='Storage Time (Days)',y_variable='Average Median Q Score Over Time',prop_point_size=False,size_column=None)            
+            
+    
 # run through plots depending on whether group variable and group count variables set
 if grouped is False:
     make_report_plot_sequence(None,legend_patches,results.colors,results.strip_plot)
