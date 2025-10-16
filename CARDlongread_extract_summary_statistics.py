@@ -173,7 +173,7 @@ def identify_topups(column):
         elif "recovery" in i:
             # if recovery in sample name, set value to recovery
             topups[idx] = "Recovery"
-        elif "reconnected" in i:
+        elif (("reconnected" in i) or ("reconnection" in i)):
             # if reconnected in sample name, set value to reconnection
             topups[idx] = "Reconnection"
         else:
