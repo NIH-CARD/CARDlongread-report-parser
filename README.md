@@ -115,7 +115,7 @@ Sequencing runs are typically conducted over 72 hours, with one 20 fmol library 
 
 A **standard run** corresponds to a sequencing run that went through three full loads successfully (one every 24 hours), while **interrupted** refers to the first part of a full sequencing run where the flow cell was later reconnected at a distinct position (e.g., 1E to 3C) or temporarily disconnected and reconnected at the same position (e.g., 1E). These run types were both designated as **initial runs** in past versions of the dashboard.
 
-A **reconnection** is the second part of a run after a flow cell is disconnected and reconnected, as described above. Reconnections are identified from lines in the JSON parser output TSV that have the same sample name and same flow cell ID.
+A **reconnection** is the second part of a run after a flow cell is disconnected and reconnected, as described above. Reconnections are identified from lines in the JSON parser output TSV that have the same sample name and same flow cell ID or from sample names including the suffixes "reconnected" or "reconnection".
 
 A **recovery** run is conducted when either insufficient library is prepared for three full loads (over three days) or when active pores substantially decrease from pre-sequencing checks after the first load. Library is recovered by slow aspiration from the flow cell sample port itself. Library is generally recovered after the first load (often due to active pore drop off) and either loaded onto a new flow cell or to the same flow cell for a subsequent load. 
 
