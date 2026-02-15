@@ -439,11 +439,13 @@ def make_scatterplot_worksheet(data,group_variable,legend_patches,user_palette,s
     # set minimum y and x to zero
     ax.set_xlim(left=0)
     ax.set_ylim(bottom=0)
-    if x_cutoffs is not None:
+    #print(y_variable)
+    # print(y_cutoffs is not None)
+    if ((x_cutoffs is not None) and (None not in x_cutoffs)):
         for idx, i in enumerate(x_cutoffs):
             # add vertical x cutoffs sequentially
             ax.axvline(x=i,color=x_cutoff_colors[idx])
-    if y_cutoffs is not None:
+    if ((y_cutoffs is not None) and (None not in y_cutoffs)):
         for idx, i in enumerate(y_cutoffs):
             # add horizontal y cutoffs sequentially
             ax.axhline(y=i,color=y_cutoff_colors[idx])
@@ -468,6 +470,8 @@ def make_scatterplot_worksheet(data,group_variable,legend_patches,user_palette,s
     worksheet.add_image(img)
     # close figure with matplotlib plt close
     plt.close()
+    # return
+    return
     
 # set up command line argument parser
 parser = argparse.ArgumentParser(description='This program prepares summary statistics from long read sequencing JSONs report data and provides both statistics tables and various violinplot/scatterplot visualizations of QC metrics.')
