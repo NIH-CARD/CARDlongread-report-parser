@@ -135,11 +135,13 @@ Per run data output vs. starting active pore scatter plot with run type annotate
 <br></br>
 Example usage (```python CARDlongread_extract_summary_statistics.py -h```):
 ```
-usage: CARDlongread_extract_summary_statistics.py [-h] [-input INPUT_FILE [INPUT_FILE ...]] [-names [NAMES ...]] [-output OUTPUT_FILE] [-platform_qc PLATFORM_QC] [-plot_title PLOT_TITLE] [--plot_cutoff | --no-plot_cutoff]
-                                                  [-run_cutoff RUN_CUTOFF] [--strip_plot | --no-strip_plot] [-colors [COLORS ...]] [-legend_colors [LEGEND_COLORS ...]] [-legend_labels [LEGEND_LABELS ...]] [--group_count | --no-group_count]
+usage: CARDlongread_extract_summary_statistics.py [-h] [-input INPUT_FILE [INPUT_FILE ...]] [-names [NAMES ...]] [-output OUTPUT_FILE] [-platform_qc PLATFORM_QC] [-delivery_date_batches DELIVERY_DATE_BATCHES]
+                                                  [-plot_title PLOT_TITLE] [--plot_cutoff | --no-plot_cutoff] [-read_count_cutoff READ_COUNT_CUTOFF] [-run_cutoff RUN_CUTOFF] [--strip_plot | --no-strip_plot]
+                                                  [-colors [COLORS ...]] [-legend_colors [LEGEND_COLORS ...]] [-legend_labels [LEGEND_LABELS ...]] [--group_count | --no-group_count]
                                                   [-output_table_with_platform_qc OUTPUT_TABLE_WITH_PLATFORM_QC] [-output_table_with_run_type OUTPUT_TABLE_WITH_RUN_TYPE]
+                                                  [-output_table_with_storage_time OUTPUT_TABLE_WITH_STORAGE_TIME]
 
-This program gets summary statistics from long read sequencing report data.
+This program prepares summary statistics from long read sequencing JSONs report data and provides both statistics tables and various violinplot/scatterplot visualizations of QC metrics.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -149,10 +151,14 @@ optional arguments:
   -output OUTPUT_FILE   Output long read sequencing summary statistics XLSX
   -platform_qc PLATFORM_QC
                         Input platform QC table to calculate active pore dropoff upon sequencing (optional)
+  -delivery_date_batches DELIVERY_DATE_BATCHES
+                        Input delivery date/batch table to calculate storage time per flow cell based on delivery date and run timestamp (optional).
   -plot_title PLOT_TITLE
                         Title for each plot in output XLSX (optional)
   --plot_cutoff, --no-plot_cutoff
                         Include cutoff lines in violin plots (optional; default true; --no-plot_cutoff to override) (default: True)
+  -read_count_cutoff READ_COUNT_CUTOFF
+                        Read count cutoff line setting (in millions of reads), primarily intended for RNA runs (optional, none default, 40 million suggested for RNA).
   -run_cutoff RUN_CUTOFF
                         Minimum data output per flow cell run to include (optional, 1 Gb default)
   --strip_plot, --no-strip_plot
@@ -168,6 +174,8 @@ optional arguments:
                         Output filename for run report summary table joined with platform QC flow cell check information (optional).
   -output_table_with_run_type OUTPUT_TABLE_WITH_RUN_TYPE
                         Output filename for run report summary table with appended run type, such as 'top up' or 'reconnection' (optional).
+  -output_table_with_storage_time OUTPUT_TABLE_WITH_STORAGE_TIME
+                        Output filename for run report summary table with delivery date, batch, and storage times in days added (optional).
 ```
 ## Tutorial
 
