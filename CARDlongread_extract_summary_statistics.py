@@ -85,6 +85,7 @@ def get_output_per_flow_cell(flow_cell_IDs, output, topup):
     return output_per_flow_cell_df
     
 # get flow cells per experiment in two column list
+# modify to include sampling rate types and/or MinKNOW versions
 def get_flow_cells_and_output_per_experiment(experiments, flow_cell_IDs, output):
     # take one column of experiments and one column of flow cell IDs from imported data frame as input
     # remove extraneous suffixes (e.g., "_topup") from experiment names
@@ -469,7 +470,7 @@ def make_scatterplot_worksheet(data,group_variable,legend_patches,user_palette,s
     plt.close()
     
 # set up command line argument parser
-parser = argparse.ArgumentParser(description='This program gets summary statistics from long read sequencing report data.')
+parser = argparse.ArgumentParser(description='This program prepares summary statistics from long read sequencing JSONs report data and provides both statistics tables and various violinplot/scatterplot visualizations of QC metrics.')
 
 # get input and output arguments
 # allow multiple inputs
@@ -486,6 +487,8 @@ parser.add_argument('-delivery_date_batches',action="store",default=None,dest="d
 parser.add_argument('-plot_title', action="store", default=None, dest="plot_title", help="Title for each plot in output XLSX (optional)")
 # add boolean --plot_cutoff argument
 parser.add_argument('--plot_cutoff', action=argparse.BooleanOptionalAction, default=True, dest="plot_cutoff", help="Include cutoff lines in violin plots (optional; default true; --no-plot_cutoff to override)")
+# add read count cutoff along with additional cutoffs
+parser.add_argument('-read_count_cutoff', action="store", default=None, type=float, dest="read_count_cutoff", help="Read count cutoff line setting (in millions of reads), primarily intended for RNA runs (optional, none default, 40 million suggested for RNA).")
 # include failed run cutoff to exclude as well
 parser.add_argument('-run_cutoff', action="store", default=1, type=float, dest="run_cutoff", help="Minimum data output per flow cell run to include (optional, 1 Gb default)")
 # add option for stripplot instead of swarmplot (in case of excessive data points)
@@ -578,14 +581,20 @@ if len(results.input_file)==1:
     # handle delivery dates
     if results.delivery_date_batches is not None:
         delivery_date_batches_table=pd.read_csv(results.delivery_date_batches,sep="\t")
-        # set longread_extract to original table joined with delivery date/batches table + calculated storage times in days
-        longread_extract=calc_storage_time_from_delivery_date(longread_extract,delivery_date_batches_table)
+        # set longread_extract_with_storage_time to original table joined with delivery date/batches table + calculated storage times in days
+        longread_extract_with_storage_time=calc_storage_time_from_delivery_date(longread_extract,delivery_date_batches_table)
+        # warn if nothing in table
+        if longread_extract_with_storage_time.empty:
+            print('Warning: No common runs between QC summary and delivery date/batch table.')
         # convert critical variable to numeric for statistics and plotting
-        longread_extract['Storage Time (Days)']=pd.to_numeric(longread_extract['Storage Time (Days)'])
+        longread_extract_with_storage_time['Storage Time (Days)']=pd.to_numeric(longread_extract['Storage Time (Days)'])
         # output table with delivery date determined if specified in options
         if results.output_table_with_storage_time is not None:
-            longread_extract.to_csv(results.output_table_with_storage_time,index=False,sep="\t")
-    
+            longread_extract_with_storage_time.to_csv(results.output_table_with_storage_time,index=False,sep="\t")
+        # set longread_extract to new table with storage date and keep old longread_extract table
+        longread_extract_no_storage_time=longread_extract.copy()
+        longread_extract=longread_extract_with_storage_time
+        
 # what if multiple input files provided
 elif len(results.input_file)>1:
     # store input tables in list as long input filename set
@@ -650,14 +659,19 @@ elif len(results.input_file)>1:
         longread_extract.to_csv(results.output_table_with_run_type,index=False,sep="\t")
     # handle delivery dates
     if results.delivery_date_batches is not None:
-        delivery_date_batches_table=pd.read_csv(results.delivery_date_batches,sep="\t")
-        # set longread_extract to original table joined with delivery date/batches table + calculated storage times in days
-        longread_extract=calc_storage_time_from_delivery_date(longread_extract,delivery_date_batches_table)
-        # convert critical variables to numeric for statistics and plotting
-        longread_extract['Storage Time (Days)']=pd.to_numeric(longread_extract['Storage Time (Days)'])
+        # set longread_extract_with_storage_time to original table joined with delivery date/batches table + calculated storage times in days
+        longread_extract_with_storage_time=calc_storage_time_from_delivery_date(longread_extract,delivery_date_batches_table)
+        # warn if nothing in table
+        if longread_extract_with_storage_time.empty:
+            print('Warning: No common runs between QC summary and delivery date/batch table.')
+        # convert critical variable to numeric for statistics and plotting
+        longread_extract_with_storage_time['Storage Time (Days)']=pd.to_numeric(longread_extract['Storage Time (Days)'])
         # output table with delivery date determined if specified in options
         if results.output_table_with_storage_time is not None:
-            longread_extract.to_csv(results.output_table_with_storage_time,index=False,sep="\t")
+            longread_extract_with_storage_time.to_csv(results.output_table_with_storage_time,index=False,sep="\t")
+        # set longread_extract to new table with storage date and keep old longread_extract table
+        longread_extract_no_storage_time=longread_extract.copy()
+        longread_extract=longread_extract_with_storage_time
     
 # read csv delimited platform qc file into pandas data frame if provided
 if results.platform_qc is not None:
@@ -667,6 +681,9 @@ if results.platform_qc is not None:
 # if platform qc file provided, make joined longread_extract/platform_qc_table
 if results.platform_qc is not None:
     longread_extract_with_platform_qc_and_diff=platform_qc_starting_active_pore_diff(longread_extract,platform_qc_table)
+    # warn if nothing in table
+    if longread_extract_with_platform_qc_and_diff.empty:
+        print('Warning: No common runs between QC summary and platform QC flow cell check tables.')
     # make Platform QC active pores column for plotting
     longread_extract_with_platform_qc_and_diff.loc[:,['Platform QC active pores']]=pd.to_numeric(longread_extract_with_platform_qc_and_diff['total_pore_count'])
     # convert all plotted columns to numeric
@@ -687,6 +704,8 @@ if results.platform_qc is not None:
 # functionalize all below to run through on separate groups
 def longread_platform_qc_summary_statistics(longread_extract,longread_extract_with_platform_qc_and_diff,longread_extract_flow_cells_and_output_per_experiment,longread_extract_output_per_flow_cell):
     # flow cells per experiment distribution
+    # debugging below
+    # print(longread_extract_flow_cells_and_output_per_experiment)
     longread_extract_flow_cells_per_experiment_dist = get_flow_cells_per_experiment_dist(longread_extract_flow_cells_and_output_per_experiment['Flow Cells'])
     # summary statistics on...
     # read N50
@@ -946,7 +965,7 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
         # test to check data type for first plotted variable: print(longread_extract['N50 (kb)'].dtype)
         make_violinswarmplot_worksheet(longread_extract,"N50 (kb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Read N50 plot',None,None,results.plot_title,True)
         make_violinswarmplot_worksheet(longread_extract,"Data output (Gb)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run data output plot',None,90,results.plot_title,True)
-        make_violinswarmplot_worksheet(longread_extract,"Read Count (M)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run read count plot',"Read Count (million reads)",None,results.plot_title,True)
+        make_violinswarmplot_worksheet(longread_extract,"Read Count (M)",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Run read count plot',"Read Count (million reads)",results.read_count_cutoff,results.plot_title,True)
         make_violinswarmplot_worksheet(longread_extract,"Starting Active Pores",group_variable,legend_patches,user_palette,strip_plot_set,workbook,'Starting active pores plot',"Starting active pores",6500,results.plot_title,True)
         # new fields to show
         # average active pores
@@ -1059,7 +1078,7 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
     make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Active pores vs. data output",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
     # do also with read count
     # cutoffs not known yet for read count
-    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Active pores vs. read count",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Active pores vs. read count",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=[results.read_count_cutoff],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
     # make_active_pore_flow_cell_output_scatterplot(longread_extract_output_per_flow_cell,workbook,'Active pores vs. flow cell output',results.plot_title)
     # make_active_pore_read_n50_scatterplot(longread_extract,workbook,'Active pores vs. read N50',results.plot_title)
     # redo with make_scatterplot_worksheet
@@ -1071,9 +1090,9 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
     make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Read N50 vs. data no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)     
     # do also with read count
     # redo with make_scatterplot_worksheet
-    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Read N50 vs. read count",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=True,x_variable='N50 (kb)',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Read N50 vs. read count",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[results.read_count_cutoff],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=True,x_variable='N50 (kb)',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
     # add read N50 vs. data output without regression line
-    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Read N50 vs. count no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Read Count (M)',prop_point_size=False,size_column=None)     
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Read N50 vs. count no line",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[results.read_count_cutoff],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='N50 (kb)',y_variable='Read Count (M)',prop_point_size=False,size_column=None)     
     # add starting active pores vs. average active pores
     make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Start vs. avg active pores",title=results.plot_title,x_cutoffs=[5000,6500],x_cutoff_colors=['red','green'],y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Starting Active Pores',y_variable='Average Active Pores',prop_point_size=False,size_column=None)            
     # add starting active pores vs. active pore AUC
@@ -1083,7 +1102,7 @@ def make_report_plot_sequence(group_variable,legend_patches,user_palette,strip_p
     # add active pore AUC vs. data output
     make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Active pore AUC vs. data",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Active Pore AUC',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
     # add active pore AUC vs. read count
-    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore AUC vs. read count",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=None,y_cutoff_colors=None,show_run_colors=True,show_reg_line=False,x_variable='Active Pore AUC',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
+    make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Pore AUC vs. read count",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[results.read_count_cutoff],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Active Pore AUC',y_variable='Read Count (M)',prop_point_size=False,size_column=None)            
     
     # add average pore occupancy vs. data output
     make_scatterplot_worksheet(longread_extract,group_variable,legend_patches,user_palette,strip_plot_set,workbook,"Avg pore occup. vs. data",title=results.plot_title,x_cutoffs=None,x_cutoff_colors=None,y_cutoffs=[90],y_cutoff_colors=['gray'],show_run_colors=True,show_reg_line=False,x_variable='Average Pore Occupancy',y_variable='Data output (Gb)',prop_point_size=False,size_column=None)            
